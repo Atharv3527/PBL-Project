@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Student Performance Prediction{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="page-title">Student Dashboard</h2>
+        <p class="page-subtitle">Monitor and predict student performance</p>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Student
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Student List -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Student List</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="input-group search-box">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search students...">
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="studentTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Study Hours</th>
+                                <th>Attendance</th>
+                                <th>Previous Grades</th>
+                                <th>Performance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                                        {{ student.name }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-clock me-2 text-secondary"></i>
+                                        {{ student.study_hours }} hrs
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ student.attendance }}%">
+                                            {{ student.attendance }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-star me-2 text-warning"></i>
+                                        {{ student.previous_grades }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if student.performance %}
+                                        <span class="badge bg-{{ 'success' if student.performance >= 70 else 'warning' }}">
+                                            <i class="fas fa-{{ 'check-circle' if student.performance >= 70 else 'exclamation-circle' }} me-1"></i>
+                                            {{ student.performance }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-question-circle me-1"></i>
+                                            Not Predicted
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary predict-btn" 
+                                            data-student-id="{{ student.id }}"
+                                            data-study-hours="{{ student.study_hours }}"
+                                            data-attendance="{{ student.attendance }}"
+                                            data-previous-grades="{{ student.previous_grades }}"
+                                            data-participation="{{ student.participation_score }}">
+                                        <i class="fas fa-chart-line me-1"></i>Predict
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Prediction Panel -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Performance Prediction</h5>
+            </div>
+            <div class="card-body">
+                <div id="predictionResult" class="text-center mb-3">
+                    <div class="prediction-result">--</div>
+                    <p class="text-muted">Predicted Performance Score</p>
+                </div>
+                
+                <div id="suggestions" class="mt-4">
+                    <h6 class="mb-3"><i class="fas fa-lightbulb me-2 text-warning"></i>Intervention Suggestions:</h6>
+                    <div id="suggestionsList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Analysis -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Performance Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div id="visualization" class="visualization-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load visualization
+    fetch('/visualize')
+        .then(response => response.json())
+        .then(data => {
+            const plot = JSON.parse(data.plot);
+            Plotly.newPlot('visualization', plot.data, plot.layout);
+        });
+
+    // Handle prediction buttons
+    document.querySelectorAll('.predict-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const data = {
+                study_hours: this.dataset.studyHours,
+                attendance: this.dataset.attendance,
+                previous_grades: this.dataset.previousGrades,
+                participation_score: this.dataset.participation
+            };
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('.prediction-result').textContent = data.prediction;
+                
+                const suggestionsList = document.getElementById('suggestionsList');
+                suggestionsList.innerHTML = '';
+                data.suggestions.forEach(suggestion => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.innerHTML = `
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
+                        ${suggestion}
+                    `;
+                    suggestionsList.appendChild(div);
+                });
+            });
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const studentTable = document.getElementById('studentTable');
+    
+    searchInput.addEventListener('keyup', function() {
+        const searchText = this.value.toLowerCase();
+        const rows = studentTable.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) {
+            const name = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
+            if (name.includes(searchText)) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 
