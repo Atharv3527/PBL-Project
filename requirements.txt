@@ -13,4 +13,4 @@ email-validator==2.1.0.post1
 plotly==6.0.1
 Werkzeug==2.3.7
 SQLAlchemy==2.0.40
-WTForms==3.2.1 
+WTForms==3.2.1
