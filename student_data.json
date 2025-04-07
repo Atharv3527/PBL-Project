@@ -1,0 +1,23 @@
+[
+    {
+        "name": "Vedant Patil",
+        "study_hours": 6,
+        "attendance": 93.9,
+        "previous_grades": 96,
+        "participation_score": 8,
+        "socio_economic_status": "Middle",
+        "extracurricular": "Medium",
+        "learning_style": "Auditory",
+        "gender": "Male",
+        "parents_education": "Graduate",
+        "study_environment": "Moderate",
+        "parent_meeting_freq": "Never",
+        "home_support": "Moderate",
+        "sleep_duration": 6,
+        "stress_level": "Low",
+        "physical_activity": "Low",
+        "peer_group_quality": "Average",
+        "submission_timeliness": "Excellent",
+        "performance": 82.3
+    }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "student-performance-predictor",
+  "version": "1.0.0",
+  "description": "Student Performance Prediction System with React frontend and Flask backend",
+  "scripts": {
+    "start-api": "cd . && python flask_api.py",
+    "start-client": "cd client && npm start",
+    "start": "concurrently \"npm run start-api\" \"npm run start-client\"",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install",
+    "install-api": "pip install -r requirements.txt",
+    "install": "npm run install-api && npm run install-client"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
