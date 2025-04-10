@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup navigation
     setupNavigation();
     
+    // Show dashboard section by default on the index/dashboard page
+    const currentPath = window.location.pathname;
+    if (currentPath === '/' || currentPath === '/dashboard') {
+        showSection('dashboard');
+    }
+    
     // Setup save prediction button (handle it only when it's visible)
     document.addEventListener('click', function(e) {
         if (e.target && e.target.id === 'save-prediction-button') {
@@ -54,16 +60,22 @@ function setupNavigation() {
     // Add click event to each link
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
+            const href = this.getAttribute('href');
             
-            // Get the target section id from href
-            const targetId = this.getAttribute('href').substring(1);
-            
-            // Show the target section
-            showSection(targetId);
-            
-            // Update active class on nav links
-            updateNavigation(targetId);
+            // Only intercept hash links (internal section navigation)
+            if (href.startsWith('#')) {
+                e.preventDefault();
+                
+                // Get the target section id from href
+                const targetId = href.substring(1);
+                
+                // Show the target section
+                showSection(targetId);
+                
+                // Update active class on nav links
+                updateNavigation(targetId);
+            }
+            // For non-hash links, allow default navigation (let browser handle them)
         });
     });
 }

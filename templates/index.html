@@ -10,35 +10,47 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a457a;">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-mortarboard-fill me-2"></i>
+            <!-- Grey Home Button on the Left -->
+            <a class="navbar-brand me-4" href="{{ url_for('index') }}" style="color: #cccccc; font-size: 1.2rem;">
+                <i class="fas fa-home"></i> Home
+            </a>
+            
+            <!-- Title -->
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-graduation-cap me-2"></i>
                 Student Performance Predictor
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link nav-btn active" href="#dashboard">
-                            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-chart-line me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-btn" href="#add-student">
-                            <i class="bi bi-person-plus me-1"></i> Add Student
+                        <a class="nav-link" href="{{ url_for('add_student') }}">
+                            <i class="fas fa-user-plus me-1"></i>Add Student
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-btn" href="#predict">
-                            <i class="bi bi-graph-up me-1"></i> Predict Performance
+                        <a class="nav-link" href="{{ url_for('predict') }}">
+                            <i class="fas fa-chart-bar me-1"></i>Predict Performance
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-btn" href="#about">
-                            <i class="bi bi-info-circle me-1"></i> About
+                        <a class="nav-link" href="{{ url_for('resume_analysis') }}">
+                            <i class="fas fa-file-alt me-1"></i>Resume Analysis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about" onclick="showSection('about'); updateNavigation('about');">
+                            <i class="fas fa-info-circle me-1"></i>About
                         </a>
                     </li>
                 </ul>

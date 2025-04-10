@@ -1,10 +1,14 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, redirect, url_for
 import pandas as pd
 import numpy as np
 import os
 from sklearn.ensemble import RandomForestRegressor
 from flask_cors import CORS
 import json
+from werkzeug.utils import secure_filename
+from PyPDF2 import PdfReader
+from docx import Document
+import re
 
 app = Flask(__name__, 
     static_folder='static',
@@ -16,6 +20,15 @@ DATA_FILE = 'student_data.json'
 
 # Initialize student data store
 students = []
+
+# Add these configurations after the app initialization
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'docx'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Create uploads directory if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 # Load existing data if file exists
 def load_data():
@@ -117,6 +130,60 @@ def add_sample_data():
 def index():
     return render_template('index.html')
 
+@app.route('/dashboard')
+def dashboard():
+    return render_template('index.html', students=students)
+
+@app.route('/add_student', methods=['GET', 'POST'])
+def add_student():
+    if request.method == 'POST':
+        # Handle form submission
+        student_data = request.form.to_dict()
+        # Convert string values to appropriate types
+        for key in ['study_hours', 'attendance', 'previous_grades', 'participation_score']:
+            if key in student_data:
+                student_data[key] = float(student_data[key])
+        
+        # Calculate performance using prediction model
+        prediction_result = make_prediction(student_data)
+        student_data['performance'] = prediction_result['prediction']
+        
+        # Add to students list
+        students.append(student_data)
+        save_data()  # Save to file
+        
+        # Redirect to dashboard
+        return redirect(url_for('dashboard'))
+        
+    # GET request - just show the form
+    return render_template('add_student.html')
+
+@app.route('/predict', methods=['GET', 'POST'])
+def predict_page():
+    prediction_result = None
+    if request.method == 'POST':
+        # Handle form submission
+        student_data = request.form.to_dict()
+        
+        # Convert numeric values to float
+        for key in ['study_hours', 'attendance', 'previous_grades', 'participation_score']:
+            if key in student_data and student_data[key]:
+                try:
+                    student_data[key] = float(student_data[key])
+                except ValueError:
+                    pass  # Keep as string if conversion fails
+        
+        # Get prediction
+        prediction_result = make_prediction(student_data)
+    
+    # GET request or after POST processing
+    return render_template('predict.html', prediction=prediction_result)
+
+@app.route('/about')
+def about():
+    # Render the index.html template with the about section visible
+    return render_template('about.html') if os.path.exists('templates/about.html') else render_template('index.html')
+
 @app.route('/static/<path:path>')
 def send_static(path):
     return send_from_directory('static', path)
@@ -141,7 +208,7 @@ def delete_student(student_index):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/students', methods=['POST'])
-def add_student():
+def add_student_api():
     student_data = request.json
     
     # If performance is not provided, calculate it
@@ -153,15 +220,80 @@ def add_student():
     save_data()  # Save changes to file
     return jsonify({"message": "Student added successfully", "student": student_data}), 201
 
-@app.route('/api/predict', methods=['POST'])
+@app.route('/api/predict', methods=['GET', 'POST'])
 def predict():
-    student_data = request.json
-    prediction_result = make_prediction(student_data)
-    return jsonify(prediction_result)
+    if request.method == 'GET':
+        # For GET requests, return empty response with example structure
+        return jsonify({
+            "prediction": 0,
+            "performance_category": "Example",
+            "suggestions": ["This is an example API. Please use POST method with student data."],
+            "feature_importance": {
+                "study_hours": 0.3,
+                "attendance": 0.25,
+                "previous_grades": 0.2
+            }
+        })
+    
+    # For POST requests
+    if request.is_json:
+        # JSON data from fetch API
+        student_data = request.json
+    else:
+        # Form data
+        student_data = request.form.to_dict()
+        
+        # Convert numeric values to float
+        for key in ['study_hours', 'attendance', 'previous_grades', 'participation_score']:
+            if key in student_data and student_data[key]:
+                try:
+                    student_data[key] = float(student_data[key])
+                except ValueError:
+                    pass  # Keep as string if conversion fails
+    
+    # Get prediction
+    try:
+        prediction_result = make_prediction(student_data)
+        return jsonify(prediction_result)
+    except Exception as e:
+        print(f"Error making prediction: {e}")
+        return jsonify({
+            "error": "Failed to make prediction",
+            "message": str(e)
+        }), 400
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     return jsonify(calculate_stats())
+
+@app.route('/visualize')
+def visualize():
+    """Route for visualization data that's called from the dashboard"""
+    if not students:
+        return jsonify({'plot': json.dumps({'data': [], 'layout': {}})})
+    
+    # Create visualization data
+    names = [student['name'] for student in students]
+    performances = [student.get('performance', 0) for student in students]
+    
+    data = [{
+        'type': 'bar',
+        'x': names,
+        'y': performances,
+        'marker': {
+            'color': 'rgba(52, 152, 219, 0.7)'
+        }
+    }]
+    
+    layout = {
+        'title': 'Student Performance Overview',
+        'xaxis': {'title': 'Students'},
+        'yaxis': {'title': 'Performance Score'},
+        'plot_bgcolor': 'rgba(0,0,0,0)',
+        'paper_bgcolor': 'rgba(0,0,0,0)'
+    }
+    
+    return jsonify({'plot': json.dumps({'data': data, 'layout': layout})})
 
 def make_prediction(data):
     """Makes a prediction based on student data and returns prediction with suggestions"""
@@ -234,12 +366,18 @@ def make_prediction(data):
     peer_group_quality = peer_group_quality_map.get(data.get('peer_group_quality', 'Average'), 1)
     submission_timeliness = submission_timeliness_map.get(data.get('submission_timeliness', 'Good'), 2)
     
+    # Handle potential missing fields with defaults
+    study_hours = float(data.get('study_hours', 5))
+    attendance = float(data.get('attendance', 80))
+    previous_grades = float(data.get('previous_grades', 75))
+    participation_score = float(data.get('participation_score', 7))
+    
     # Make prediction with the new features
     X_test = np.array([[
-        float(data['study_hours']),
-        float(data['attendance']),
-        float(data['previous_grades']),
-        float(data['participation_score']),
+        study_hours,
+        attendance,
+        previous_grades,
+        participation_score,
         socio_economic,
         extracurricular,
         learning_style,
@@ -409,6 +547,116 @@ def calculate_stats():
         "average_performance": average_performance,
         "performance_distribution": performance_distribution
     }
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def extract_text_from_pdf(file_path):
+    with open(file_path, 'rb') as file:
+        reader = PdfReader(file)
+        text = ''
+        for page in reader.pages:
+            text += page.extract_text()
+    return text
+
+def extract_text_from_docx(file_path):
+    doc = Document(file_path)
+    text = ''
+    for paragraph in doc.paragraphs:
+        text += paragraph.text + '\n'
+    return text
+
+def analyze_resume(text):
+    # Initialize scores
+    content_score = 0
+    format_score = 0
+    style_score = 0
+    skills_score = 0
+    recommendations = []
+
+    # Content Analysis
+    sections = ['education', 'experience', 'skills', 'projects']
+    found_sections = 0
+    for section in sections:
+        if re.search(section, text.lower()):
+            found_sections += 1
+    content_score = (found_sections / len(sections)) * 100
+
+    # Format Analysis
+    lines = text.split('\n')
+    format_score = min(100, (len(lines) / 40) * 100)  # Assume ideal length is 40 lines
+
+    # Style Analysis
+    action_verbs = ['developed', 'implemented', 'created', 'managed', 'led', 'designed', 'analyzed']
+    verb_count = sum(1 for verb in action_verbs if verb in text.lower())
+    style_score = min(100, (verb_count / 5) * 100)  # Assume 5 action verbs is ideal
+
+    # Skills Analysis
+    technical_skills = ['python', 'java', 'javascript', 'sql', 'react', 'node', 'machine learning']
+    found_skills = sum(1 for skill in technical_skills if skill in text.lower())
+    skills_score = min(100, (found_skills / len(technical_skills)) * 100)
+
+    # Generate Recommendations
+    if content_score < 70:
+        recommendations.append("Add more details to key sections (Education, Experience, Skills, Projects)")
+    if format_score < 70:
+        recommendations.append("Optimize resume length and structure")
+    if style_score < 70:
+        recommendations.append("Use more action verbs to describe your achievements")
+    if skills_score < 70:
+        recommendations.append("Include more relevant technical skills")
+
+    # Calculate overall score
+    overall_score = int((content_score + format_score + style_score + skills_score) / 4)
+
+    return {
+        'score': overall_score,
+        'contentScore': int(content_score),
+        'formatScore': int(format_score),
+        'styleScore': int(style_score),
+        'skillsScore': int(skills_score),
+        'recommendations': recommendations
+    }
+
+@app.route('/resume_analysis')
+def resume_analysis():
+    return render_template('resume_analysis.html')
+
+@app.route('/api/analyze_resume', methods=['POST'])
+def analyze_resume_api():
+    if 'resume' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['resume']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        try:
+            # Extract text based on file type
+            if filename.endswith('.pdf'):
+                text = extract_text_from_pdf(file_path)
+            else:  # docx
+                text = extract_text_from_docx(file_path)
+            
+            # Analyze the resume
+            result = analyze_resume(text)
+            
+            # Clean up the uploaded file
+            os.remove(file_path)
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            return jsonify({'error': str(e)}), 500
+    
+    return jsonify({'error': 'Invalid file type'}), 400
 
 # Load data when the application starts
 load_data()

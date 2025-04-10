@@ -5,7 +5,7 @@ Set-Location "C:\PBL Project"
 .\venv\Scripts\activate
 
 # Install required packages
-pip install flask flask-sqlalchemy pandas numpy scikit-learn plotly flask-cors
+pip install flask flask-sqlalchemy pandas numpy scikit-learn plotly flask-cors PyPDF2 python-docx
 
 # Check if flask_api.py exists
 if (-not (Test-Path "flask_api.py")) {
