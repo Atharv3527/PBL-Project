@@ -1,659 +1,259 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Performance Prediction System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a457a;">
-        <div class="container">
-            <!-- Grey Home Button on the Left -->
-            <a class="navbar-brand me-4" href="{{ url_for('index') }}" style="color: #cccccc; font-size: 1.2rem;">
-                <i class="fas fa-home"></i> Home
-            </a>
-            
-            <!-- Title -->
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-graduation-cap me-2"></i>
-                Student Performance Predictor
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="fas fa-chart-line me-1"></i>Dashboard
+{% extends "base.html" %}
+
+{% block title %}Student Performance Predictor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+    .project-info-card {
+        background: linear-gradient(135deg, #4a6bfb 0%, #2c3e50 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+    }
+    .project-icon {
+        font-size: 5rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .stat-card {
+        transition: all 0.3s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+        color: #3498db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Section -->
+<section id="dashboard" class="mb-5">
+    <h1 class="text-center mb-4">Student Performance Dashboard</h1>
+    
+    <!-- Project intro -->
+    <div class="card project-info-card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h2>Welcome to the Student Performance Prediction System</h2>
+                    <p class="lead">Empowering educators with data-driven insights to improve student outcomes</p>
+                    <p>This intelligent system analyzes various factors affecting student performance and provides actionable predictions to help identify at-risk students early and implement targeted interventions.</p>
+                    <div class="mt-3">
+                        <a href="{{ url_for('add_student') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-user-plus me-2"></i>Add New Student
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('add_student') }}">
-                            <i class="fas fa-user-plus me-1"></i>Add Student
+                        <a href="{{ url_for('about') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-info-circle me-2"></i>Learn More
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('predict') }}">
-                            <i class="fas fa-chart-bar me-1"></i>Predict Performance
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('resume_analysis') }}">
-                            <i class="fas fa-file-alt me-1"></i>Resume Analysis
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#about" onclick="showSection('about'); updateNavigation('about');">
-                            <i class="fas fa-info-circle me-1"></i>About
-                        </a>
-                    </li>
-                </ul>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-chart-line project-icon"></i>
+                </div>
             </div>
         </div>
-    </nav>
-
-    <div class="container mt-4">
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="mb-5">
-            <h1 class="text-center mb-4">Student Performance Dashboard</h1>
-            
-            <!-- Project intro -->
-            <div class="card project-info-card mb-4">
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100 shadow-sm stat-card">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h2>Welcome to the Student Performance Prediction System</h2>
-                            <p class="lead">Empowering educators with data-driven insights to improve student outcomes</p>
-                            <p>This intelligent system analyzes various factors affecting student performance and provides actionable predictions to help identify at-risk students early and implement targeted interventions.</p>
-                            <div class="mt-3">
-                                <a href="#add-student" class="btn btn-primary me-2" onclick="showSection('add-student'); updateNavigation('add-student');">Add New Student</a>
-                                <a href="#about" class="btn btn-outline-secondary" onclick="showSection('about'); updateNavigation('about');">Learn More</a>
-                            </div>
-                        </div>
-                        <div class="col-md-4 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-graph-up-arrow project-icon"></i>
-                        </div>
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-users"></i>
                     </div>
+                    <h5 class="card-title">Total Students</h5>
+                    <h3 id="total-students">{{ students|length }}</h3>
                 </div>
             </div>
-            
-            <div class="row mb-4">
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-center h-100 shadow-sm stat-card">
-                        <div class="card-body">
-                            <div class="stat-icon mb-2">
-                                <i class="bi bi-people-fill"></i>
-                            </div>
-                            <h5 class="card-title">Total Students</h5>
-                            <h3 id="total-students">0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-center h-100 shadow-sm stat-card">
-                        <div class="card-body">
-                            <div class="stat-icon mb-2">
-                                <i class="bi bi-bar-chart-fill"></i>
-                            </div>
-                            <h5 class="card-title">Average Performance</h5>
-                            <h3 id="avg-performance">0%</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-center h-100 shadow-sm stat-card">
-                        <div class="card-body">
-                            <div class="stat-icon mb-2">
-                                <i class="bi bi-trophy-fill"></i>
-                            </div>
-                            <h5 class="card-title">Top Performance</h5>
-                            <h3 id="top-performance">0%</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-center h-100 shadow-sm stat-card">
-                        <div class="card-body">
-                            <div class="stat-icon mb-2">
-                                <i class="bi bi-clock-fill"></i>
-                            </div>
-                            <h5 class="card-title">Average Study Hours</h5>
-                            <h3 id="avg-study-hours">0</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-center mb-5">
-                <button id="show-student-data-btn" class="btn btn-lg btn-danger">
-                    <i class="bi bi-table me-2"></i>View Student Data
-                </button>
-            </div>
-
-            <div class="card shadow-sm mb-4" id="student-data-table-card">
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100 shadow-sm stat-card">
                 <div class="card-body">
-                    <h5 class="card-title">Student Data</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Name</th>
-                                    <th>Study Hours</th>
-                                    <th>Attendance (%)</th>
-                                    <th>Previous Grades</th>
-                                    <th>Participation</th>
-                                    <th>Socio-Economic Status</th>
-                                    <th>Performance</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="students-table-body">
-                                <tr>
-                                    <td colspan="9" class="text-center">No students data available</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-chart-line"></i>
                     </div>
+                    <h5 class="card-title">Average Performance</h5>
+                    <h3 id="avg-performance">
+                        {% if students %}
+                            {{ (students|map(attribute='performance')|sum / students|length)|round }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
-        </section>
-
-        <!-- Add Student Section -->
-        <section id="add-student" class="mb-5 d-none">
-            <h1 class="text-center mb-4">Add New Student</h1>
-            
-            <div class="card mx-auto shadow-sm" style="max-width: 800px;">
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100 shadow-sm stat-card">
                 <div class="card-body">
-                    <h5 class="card-title">Student Information</h5>
-                    
-                    <div id="add-student-alert" class="alert d-none" role="alert"></div>
-                    
-                    <form id="add-student-form">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Student Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="study_hours" class="form-label">Study Hours (per day)</label>
-                            <input type="number" class="form-control" id="study_hours" name="study_hours" 
-                                   step="0.1" min="0" max="24" required>
-                            <div class="form-text">Enter a value between 0 and 24</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="attendance" class="form-label">Attendance (%)</label>
-                            <input type="number" class="form-control" id="attendance" name="attendance" 
-                                   step="0.1" min="0" max="100" required>
-                            <div class="form-text">Enter a value between 0 and 100</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="previous_grades" class="form-label">Previous Grades</label>
-                            <input type="number" class="form-control" id="previous_grades" name="previous_grades" 
-                                   step="0.1" min="0" max="100" required>
-                            <div class="form-text">Enter a value between 0 and 100</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="participation_score" class="form-label">Participation Score</label>
-                            <input type="number" class="form-control" id="participation_score" name="participation_score" 
-                                   step="0.1" min="0" max="10" required>
-                            <div class="form-text">Enter a value between 0 and 10</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="socio_economic_status" class="form-label">Socio-Economic Status</label>
-                            <select class="form-select" id="socio_economic_status" name="socio_economic_status" required>
-                                <option value="" selected disabled>Select status</option>
-                                <option value="Low">Low</option>
-                                <option value="Middle">Middle</option>
-                                <option value="High">High</option>
-                            </select>
-                            <div class="form-text">Select the appropriate socio-economic background</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="extracurricular" class="form-label">Extracurricular Activities</label>
-                            <select class="form-select" id="extracurricular" name="extracurricular" required>
-                                <option value="" selected disabled>Select level</option>
-                                <option value="None">None</option>
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
-                            </select>
-                            <div class="form-text">Select the level of involvement in extracurricular activities</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="learning_style" class="form-label">Learning Style</label>
-                            <select class="form-select" id="learning_style" name="learning_style" required>
-                                <option value="" selected disabled>Select style</option>
-                                <option value="Visual">Visual</option>
-                                <option value="Auditory">Auditory</option>
-                                <option value="Reading/Writing">Reading/Writing</option>
-                                <option value="Kinesthetic">Kinesthetic</option>
-                            </select>
-                            <div class="form-text">Select the primary learning style</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="gender" class="form-label">Gender</label>
-                            <select class="form-select" id="gender" name="gender" required>
-                                <option value="" selected disabled>Select gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="parents_education" class="form-label">Parents' Education</label>
-                            <select class="form-select" id="parents_education" name="parents_education" required>
-                                <option value="" selected disabled>Select education level</option>
-                                <option value="Primary">Primary</option>
-                                <option value="Secondary">Secondary</option>
-                                <option value="Higher">Higher</option>
-                                <option value="Graduate">Graduate</option>
-                                <option value="Post-Graduate">Post-Graduate</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="study_environment" class="form-label">Study Environment</label>
-                            <select class="form-select" id="study_environment" name="study_environment" required>
-                                <option value="" selected disabled>Select environment</option>
-                                <option value="Quiet">Quiet</option>
-                                <option value="Moderate">Moderate</option>
-                                <option value="Noisy">Noisy</option>
-                            </select>
-                            <div class="form-text">Select the typical environment where the student studies</div>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3">Parental Involvement</h5>
-                        
-                        <div class="mb-3">
-                            <label for="parent_meeting_freq" class="form-label">Parent-Teacher Meeting Frequency</label>
-                            <select class="form-select" id="parent_meeting_freq" name="parent_meeting_freq" required>
-                                <option value="" selected disabled>Select frequency</option>
-                                <option value="Never">Never</option>
-                                <option value="Rarely">Rarely (1-2 times/year)</option>
-                                <option value="Sometimes">Sometimes (3-4 times/year)</option>
-                                <option value="Frequently">Frequently (5+ times/year)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="home_support" class="form-label">Home Support for Learning</label>
-                            <select class="form-select" id="home_support" name="home_support" required>
-                                <option value="" selected disabled>Select level</option>
-                                <option value="Low">Low</option>
-                                <option value="Moderate">Moderate</option>
-                                <option value="High">High</option>
-                            </select>
-                            <div class="form-text">Level of academic support provided at home</div>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3">Psychological & Lifestyle Factors</h5>
-                        
-                        <div class="mb-3">
-                            <label for="sleep_duration" class="form-label">Sleep Duration (hours/day)</label>
-                            <input type="number" class="form-control" id="sleep_duration" name="sleep_duration" 
-                                   step="0.5" min="4" max="12" required>
-                            <div class="form-text">Average sleep hours per day</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="stress_level" class="form-label">Stress Level</label>
-                            <select class="form-select" id="stress_level" name="stress_level" required>
-                                <option value="" selected disabled>Select level</option>
-                                <option value="Low">Low</option>
-                                <option value="Moderate">Moderate</option>
-                                <option value="High">High</option>
-                                <option value="Very High">Very High</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="physical_activity" class="form-label">Physical Activity</label>
-                            <select class="form-select" id="physical_activity" name="physical_activity" required>
-                                <option value="" selected disabled>Select level</option>
-                                <option value="None">None</option>
-                                <option value="Low">Low (1-2 hours/week)</option>
-                                <option value="Moderate">Moderate (3-5 hours/week)</option>
-                                <option value="High">High (6+ hours/week)</option>
-                            </select>
-                        </div>
-                        
-                        <h5 class="mt-4 mb-3">Peer Influence & Social Factors</h5>
-                        
-                        <div class="mb-3">
-                            <label for="peer_group_quality" class="form-label">Peer Group Academic Quality</label>
-                            <select class="form-select" id="peer_group_quality" name="peer_group_quality" required>
-                                <option value="" selected disabled>Select quality</option>
-                                <option value="Poor">Poor</option>
-                                <option value="Average">Average</option>
-                                <option value="Good">Good</option>
-                                <option value="Excellent">Excellent</option>
-                            </select>
-                            <div class="form-text">Academic quality of student's friend group</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="submission_timeliness" class="form-label">Assignment Submission Timeliness</label>
-                            <select class="form-select" id="submission_timeliness" name="submission_timeliness" required>
-                                <option value="" selected disabled>Select timeliness</option>
-                                <option value="Poor">Often Late</option>
-                                <option value="Average">Sometimes Late</option>
-                                <option value="Good">Usually On Time</option>
-                                <option value="Excellent">Always On Time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-secondary me-md-2" onclick="showSection('dashboard'); updateNavigation('dashboard');">Cancel</button>
-                            <button type="submit" class="btn btn-primary" id="add-student-submit">Add Student</button>
-                        </div>
-                    </form>
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h5 class="card-title">Top Performance</h5>
+                    <h3 id="top-performance">
+                        {% if students %}
+                            {{ students|map(attribute='performance')|max|round }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
-        </section>
-
-        <!-- Predict Performance Section -->
-        <section id="predict" class="mb-5 d-none">
-            <h1 class="text-center mb-4">Predict Student Performance</h1>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title">Student Information</h5>
-                            
-                            <div id="predict-alert" class="alert d-none" role="alert"></div>
-                            
-                            <form id="predict-form">
-                                <div class="mb-3">
-                                    <label for="predict_name" class="form-label">Student Name (Optional)</label>
-                                    <input type="text" class="form-control" id="predict_name" name="name">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_study_hours" class="form-label">Study Hours (per day)</label>
-                                    <input type="number" class="form-control" id="predict_study_hours" name="study_hours" 
-                                           step="0.1" min="0" max="24" required>
-                                    <div class="form-text">Enter a value between 0 and 24</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_attendance" class="form-label">Attendance (%)</label>
-                                    <input type="number" class="form-control" id="predict_attendance" name="attendance" 
-                                           step="0.1" min="0" max="100" required>
-                                    <div class="form-text">Enter a value between 0 and 100</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_previous_grades" class="form-label">Previous Grades</label>
-                                    <input type="number" class="form-control" id="predict_previous_grades" name="previous_grades" 
-                                           step="0.1" min="0" max="100" required>
-                                    <div class="form-text">Enter a value between 0 and 100</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_participation_score" class="form-label">Participation Score</label>
-                                    <input type="number" class="form-control" id="predict_participation_score" name="participation_score" 
-                                           step="0.1" min="0" max="10" required>
-                                    <div class="form-text">Enter a value between 0 and 10</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_socio_economic_status" class="form-label">Socio-Economic Status</label>
-                                    <select class="form-select" id="predict_socio_economic_status" name="socio_economic_status" required>
-                                        <option value="" selected disabled>Select status</option>
-                                        <option value="Low">Low</option>
-                                        <option value="Middle">Middle</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_extracurricular" class="form-label">Extracurricular Activities</label>
-                                    <select class="form-select" id="predict_extracurricular" name="extracurricular" required>
-                                        <option value="" selected disabled>Select level</option>
-                                        <option value="None">None</option>
-                                        <option value="Low">Low</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_learning_style" class="form-label">Learning Style</label>
-                                    <select class="form-select" id="predict_learning_style" name="learning_style" required>
-                                        <option value="" selected disabled>Select style</option>
-                                        <option value="Visual">Visual</option>
-                                        <option value="Auditory">Auditory</option>
-                                        <option value="Reading/Writing">Reading/Writing</option>
-                                        <option value="Kinesthetic">Kinesthetic</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_gender" class="form-label">Gender</label>
-                                    <select class="form-select" id="predict_gender" name="gender" required>
-                                        <option value="" selected disabled>Select gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_parents_education" class="form-label">Parents' Education</label>
-                                    <select class="form-select" id="predict_parents_education" name="parents_education" required>
-                                        <option value="" selected disabled>Select education level</option>
-                                        <option value="Primary">Primary</option>
-                                        <option value="Secondary">Secondary</option>
-                                        <option value="Higher">Higher</option>
-                                        <option value="Graduate">Graduate</option>
-                                        <option value="Post-Graduate">Post-Graduate</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_study_environment" class="form-label">Study Environment</label>
-                                    <select class="form-select" id="predict_study_environment" name="study_environment" required>
-                                        <option value="" selected disabled>Select environment</option>
-                                        <option value="Quiet">Quiet</option>
-                                        <option value="Moderate">Moderate</option>
-                                        <option value="Noisy">Noisy</option>
-                                    </select>
-                                </div>
-                                
-                                <h5 class="mt-4 mb-3">Parental Involvement</h5>
-                        
-                                <div class="mb-3">
-                                    <label for="predict_parent_meeting_freq" class="form-label">Parent-Teacher Meeting Frequency</label>
-                                    <select class="form-select" id="predict_parent_meeting_freq" name="parent_meeting_freq" required>
-                                        <option value="" selected disabled>Select frequency</option>
-                                        <option value="Never">Never</option>
-                                        <option value="Rarely">Rarely (1-2 times/year)</option>
-                                        <option value="Sometimes">Sometimes (3-4 times/year)</option>
-                                        <option value="Frequently">Frequently (5+ times/year)</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_home_support" class="form-label">Home Support for Learning</label>
-                                    <select class="form-select" id="predict_home_support" name="home_support" required>
-                                        <option value="" selected disabled>Select level</option>
-                                        <option value="Low">Low</option>
-                                        <option value="Moderate">Moderate</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-                                
-                                <h5 class="mt-4 mb-3">Psychological & Lifestyle Factors</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_sleep_duration" class="form-label">Sleep Duration (hours/day)</label>
-                                    <input type="number" class="form-control" id="predict_sleep_duration" name="sleep_duration" 
-                                           step="0.5" min="4" max="12" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_stress_level" class="form-label">Stress Level</label>
-                                    <select class="form-select" id="predict_stress_level" name="stress_level" required>
-                                        <option value="" selected disabled>Select level</option>
-                                        <option value="Low">Low</option>
-                                        <option value="Moderate">Moderate</option>
-                                        <option value="High">High</option>
-                                        <option value="Very High">Very High</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_physical_activity" class="form-label">Physical Activity</label>
-                                    <select class="form-select" id="predict_physical_activity" name="physical_activity" required>
-                                        <option value="" selected disabled>Select level</option>
-                                        <option value="None">None</option>
-                                        <option value="Low">Low (1-2 hours/week)</option>
-                                        <option value="Moderate">Moderate (3-5 hours/week)</option>
-                                        <option value="High">High (6+ hours/week)</option>
-                                    </select>
-                                </div>
-                                
-                                <h5 class="mt-4 mb-3">Peer Influence & Social Factors</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_peer_group_quality" class="form-label">Peer Group Academic Quality</label>
-                                    <select class="form-select" id="predict_peer_group_quality" name="peer_group_quality" required>
-                                        <option value="" selected disabled>Select quality</option>
-                                        <option value="Poor">Poor</option>
-                                        <option value="Average">Average</option>
-                                        <option value="Good">Good</option>
-                                        <option value="Excellent">Excellent</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="predict_submission_timeliness" class="form-label">Assignment Submission Timeliness</label>
-                                    <select class="form-select" id="predict_submission_timeliness" name="submission_timeliness" required>
-                                        <option value="" selected disabled>Select timeliness</option>
-                                        <option value="Poor">Often Late</option>
-                                        <option value="Average">Sometimes Late</option>
-                                        <option value="Good">Usually On Time</option>
-                                        <option value="Excellent">Always On Time</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary" id="predict-submit">Predict Performance</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="card shadow-sm mb-4 h-100" id="prediction-results-card">
-                        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
-                            <i class="bi bi-graph-up display-1 text-muted mb-3"></i>
-                            <h3 class="text-muted">Enter student data and click "Predict Performance"</h3>
-                            <p class="text-muted">
-                                The prediction model will analyze the data and provide a performance prediction along with suggestions for improvement.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- About Section -->
-        <section id="about" class="mb-5 d-none">
-            <h1 class="text-center mb-4">About This Project</h1>
-            
-            <div class="card shadow-sm mb-4">
+        </div>
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card text-center h-100 shadow-sm stat-card">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h2>Student Performance Prediction System</h2>
-                            <p class="lead">Empowering educators with data-driven insights</p>
-                            
-                            <h5 class="mt-4">Description</h5>
-                            <p>This project aims to develop a predictive model that estimates the academic performance of students by analyzing various influencing factors. These factors include study habits (e.g., study time per week), attendance records, prior academic achievements, participation in class activities, socio-economic background, and other relevant metrics. By identifying patterns in student behavior and performance data, the model will provide actionable insights to educators and institutions, enabling them to take proactive academic interventions to improve student outcomes.</p>
-                            
-                            <h5 class="mt-4">Key Features</h5>
-                            <ul>
-                                <li><strong>Data Preprocessing:</strong> Cleaning and transforming raw student data (attendance, grades, study hours) for accurate predictions.</li>
-                                <li><strong>Feature Selection:</strong> Identifying the most influential factors affecting student performance using statistical methods.</li>
-                                <li><strong>Predictive Modeling:</strong> Employing machine learning algorithms (Linear Regression, Random Forest, or Support Vector Machines) to forecast student grades or performance levels.</li>
-                                <li><strong>Evaluation Metrics:</strong> Assessing model accuracy using metrics like Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and R² score.</li>
-                                <li><strong>Visualization:</strong> Interactive graphs and charts to help educators easily interpret data trends and model outcomes.</li>
-                                <li><strong>Intervention Suggestions:</strong> Recommending specific actions, such as additional tutoring or attendance improvement strategies, based on predictive insights.</li>
-                            </ul>
-                            
-                            <h5 class="mt-4">Tools & Technologies</h5>
-                            <ul>
-                                <li><strong>Python:</strong> For overall development and scripting.</li>
-                                <li><strong>Scikit-learn:</strong> To build and evaluate machine learning models.</li>
-                                <li><strong>Pandas:</strong> For data manipulation and analysis.</li>
-                                <li><strong>Flask:</strong> For web application development.</li>
-                                <li><strong>Bootstrap & JavaScript:</strong> For frontend design and interactivity.</li>
-                            </ul>
-                            
-                            <h5 class="mt-4">Outcome</h5>
-                            <p>The final system serves as an intelligent academic support tool that empowers teachers and administrators with data-driven insights. By predicting students' future performance, institutions can identify at-risk students early, tailor interventions to individual needs, and foster a more supportive learning environment.</p>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="about-sidebar">
-                                <div class="feature-box">
-                                    <i class="bi bi-database-fill"></i>
-                                    <h5>Data Analysis</h5>
-                                    <p>Sophisticated data processing to extract meaningful patterns</p>
-                                </div>
-                                
-                                <div class="feature-box">
-                                    <i class="bi bi-robot"></i>
-                                    <h5>Machine Learning</h5>
-                                    <p>Advanced algorithms to predict student outcomes</p>
-                                </div>
-                                
-                                <div class="feature-box">
-                                    <i class="bi bi-lightbulb-fill"></i>
-                                    <h5>Actionable Insights</h5>
-                                    <p>Practical recommendations for student improvement</p>
-                                </div>
-                                
-                                <div class="feature-box">
-                                    <i class="bi bi-bar-chart-line-fill"></i>
-                                    <h5>Visual Analytics</h5>
-                                    <p>Clear visualization of performance trends</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-clock"></i>
                     </div>
+                    <h5 class="card-title">Average Study Hours</h5>
+                    <h3 id="avg-study-hours">
+                        {% if students %}
+                            {{ (students|map(attribute='study_hours')|sum / students|length)|round(1) }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
-        </section>
-
+        </div>
     </div>
 
-    <footer class="footer mt-auto py-3">
-        <div class="container text-center">
-            <span>© 2025 Student Performance Prediction System | Developed for Educational Purposes</span>
-        </div>
-    </footer>
+    <div class="text-center mb-5">
+        <button id="show-student-data-btn" class="btn btn-lg btn-danger">
+            <i class="fas fa-table me-2"></i>View Student Data
+        </button>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="/static/js/app.js"></script>
-</body>
-</html> 
+    <div class="card shadow-sm mb-4" id="student-data-table-card" style="display: none; border: 2px solid #e74c3c;">
+        <div class="card-body">
+            <h5 class="card-title fw-bold text-danger mb-4">Student Data</h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Study Hours</th>
+                            <th>Attendance (%)</th>
+                            <th>Previous Grades</th>
+                            <th>Participation</th>
+                            <th>Socio-Economic Status</th>
+                            <th>Performance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-table-body">
+                        {% if students %}
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ student.name }}</td>
+                                <td>{{ student.study_hours }}</td>
+                                <td>{{ student.attendance }}</td>
+                                <td>{{ student.previous_grades }}</td>
+                                <td>{{ student.participation_score }}</td>
+                                <td>{{ student.socio_economic_status }}</td>
+                                <td><span class="badge bg-success">{{ student.performance|round }}%</span></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('predict_page') }}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-bolt me-1"></i> Predict
+                                        </a>
+                                        <button class="btn btn-sm btn-danger delete-student" data-index="{{ loop.index0 }}">
+                                            <i class="fas fa-trash me-1"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center">No students data available</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Print debug info to console
+    console.log("Student data available:", "{{ students|length > 0 }}");
+    console.log("Number of students:", "{{ students|length }}");
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded");
+        
+        // Get elements
+        const studentDataTableCard = document.getElementById('student-data-table-card');
+        const showStudentDataBtn = document.getElementById('show-student-data-btn');
+        
+        console.log("Table element found:", !!studentDataTableCard);
+        console.log("Button element found:", !!showStudentDataBtn);
+        
+        // Make sure table is properly initialized as hidden
+        if (studentDataTableCard) {
+            studentDataTableCard.style.display = 'none';
+            console.log("Table hidden on load");
+        }
+        
+        // Simpler toggle approach
+        if (showStudentDataBtn) {
+            showStudentDataBtn.addEventListener('click', function() {
+                console.log("Button clicked");
+                
+                // Simplified toggle
+                if (studentDataTableCard.style.display === 'none') {
+                    studentDataTableCard.style.display = 'block';
+                    showStudentDataBtn.innerHTML = '<i class="fas fa-eye-slash me-2"></i>Hide Student Data';
+                    console.log("Table shown");
+                } else {
+                    studentDataTableCard.style.display = 'none';
+                    showStudentDataBtn.innerHTML = '<i class="fas fa-table me-2"></i>View Student Data';
+                    console.log("Table hidden");
+                }
+            });
+            
+            // Direct onclick as a fallback
+            showStudentDataBtn.onclick = function() {
+                if (studentDataTableCard.style.display === 'none') {
+                    studentDataTableCard.style.display = 'block';
+                } else {
+                    studentDataTableCard.style.display = 'none';
+                }
+            };
+        }
+        
+        // Handle delete student
+        const deleteButtons = document.querySelectorAll('.delete-student');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const index = this.dataset.index;
+                if (confirm('Are you sure you want to delete this student?')) {
+                    fetch(`/api/students/${index}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        // Reload the page to reflect changes
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the student.');
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

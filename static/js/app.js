@@ -286,8 +286,8 @@ function predictForStudent(studentIndex) {
     if (student.peer_group_quality) {
         document.getElementById('predict_peer_group_quality').value = student.peer_group_quality;
     }
-    if (student.submission_timeliness) {
-        document.getElementById('predict_submission_timeliness').value = student.submission_timeliness;
+    if (student.assignment_timeliness) {
+        document.getElementById('predict_assignment_timeliness').value = student.assignment_timeliness;
     }
     
     // Scroll to prediction form
@@ -337,7 +337,7 @@ function handleAddStudent(e) {
         stress_level: document.getElementById('stress_level').value,
         physical_activity: document.getElementById('physical_activity').value,
         peer_group_quality: document.getElementById('peer_group_quality').value,
-        submission_timeliness: document.getElementById('submission_timeliness').value
+        assignment_timeliness: document.getElementById('assignment_timeliness').value
     };
     
     // Show loading state
@@ -415,7 +415,7 @@ function handlePredictPerformance(e) {
         stress_level: document.getElementById('predict_stress_level').value,
         physical_activity: document.getElementById('predict_physical_activity').value,
         peer_group_quality: document.getElementById('predict_peer_group_quality').value,
-        submission_timeliness: document.getElementById('predict_submission_timeliness').value
+        assignment_timeliness: document.getElementById('predict_assignment_timeliness').value
     };
     
     // Show loading state
@@ -786,7 +786,7 @@ function saveStudentWithPrediction() {
         stress_level: document.getElementById('predict_stress_level').value,
         physical_activity: document.getElementById('predict_physical_activity').value,
         peer_group_quality: document.getElementById('predict_peer_group_quality').value,
-        submission_timeliness: document.getElementById('predict_submission_timeliness').value,
+        assignment_timeliness: document.getElementById('predict_assignment_timeliness').value,
         // Get the predicted performance from the display
         performance: parseFloat(document.querySelector('.display-1').textContent)
     };

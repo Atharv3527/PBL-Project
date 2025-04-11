@@ -1,323 +1,316 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Analysis - Student Performance Prediction</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: lightblue;
-            min-height: 100vh;
-            color: white;
-        }
-        .nav-button {
-            margin: 0 10px;
-            padding: 8px 20px;
-            border-radius: 5px;
-            transition: all 0.3s;
-            background-color: #333333;
-            color: white;
-            border: none;
-        }
-        .nav-button:hover {
-            background-color: #444444;
-            transform: translateY(-2px);
-        }
-        .navbar {
-            background-color: #111111;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .navbar-brand {
-            color: white !important;
-        }
-        .upload-section {
-            background-color: rgba(51, 51, 51, 0.9);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            color: white;
-        }
-        .description-section {
-            margin-top: 2rem;
-            padding: 2rem;
-            background-color: rgba(51, 51, 51, 0.9);
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            color: white;
-        }
-        #uploadForm {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .custom-file-upload {
-            border: 2px dashed #666666;
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 1rem;
-            background-color: rgba(51, 51, 51, 0.8);
-            transition: all 0.3s;
-            color: white;
-        }
-        .custom-file-upload:hover {
-            background-color: rgba(68, 68, 68, 0.95);
-            transform: translateY(-2px);
-        }
-        #result-section {
-            display: none;
-            margin-top: 2rem;
-        }
-        .btn-primary {
-            background-color: #333333;
-            border: none;
-            padding: 12px 24px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .btn-primary:hover {
-            background-color: #444444;
-            transform: translateY(-2px);
-        }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            background-color: rgba(51, 51, 51, 0.95);
-            color: white;
-        }
-        .card-title {
-            color: #ffffff;
-            font-weight: 600;
-        }
-        .progress {
-            height: 25px;
-            border-radius: 12px;
-            background-color: rgba(0,0,0,0.3);
-        }
-        .progress-bar {
-            background-color: #666666;
-        }
-        .list-group-item {
-            border: none;
-            background-color: rgba(68, 68, 68, 0.8);
-            margin-bottom: 5px;
-            border-radius: 8px;
-            color: white;
-        }
-        .text-primary {
-            color: #ffffff !important;
-        }
-        .text-success {
-            color: #4CAF50 !important;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a457a;">
-        <div class="container">
-            <!-- Grey Home Button on the Left -->
-            <a class="navbar-brand me-4" href="{{ url_for('index') }}" style="color: #cccccc; font-size: 1.2rem;">
-                <i class="fas fa-home"></i> Home
-            </a>
-            
-            <!-- Title -->
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-graduation-cap me-2"></i>
-                Student Performance Predictor
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="fas fa-chart-line me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('add_student') }}">
-                            <i class="fas fa-user-plus me-1"></i>Add Student
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('predict') }}">
-                            <i class="fas fa-chart-bar me-1"></i>Predict Performance
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('resume_analysis') }}">
-                            <i class="fas fa-file-alt me-1"></i>Resume Analysis
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">
-                            <i class="fas fa-info-circle me-1"></i>About
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container">
-        <h1 class="text-center mt-4 mb-4">Resume Analysis</h1>
-        
-        <div class="description-section">
-            <h3><i class="fas fa-info-circle me-2"></i>About Resume Analysis</h3>
-            <p>Our resume analysis tool helps evaluate student profiles through their CV/Resume. Upload your resume in PDF format to:</p>
-            <ul class="list-unstyled">
-                <li><i class="fas fa-check-circle me-2 text-success"></i>Extract key skills and competencies</li>
-                <li><i class="fas fa-check-circle me-2 text-success"></i>Identify academic achievements</li>
-                <li><i class="fas fa-check-circle me-2 text-success"></i>Analyze extracurricular activities</li>
-                <li><i class="fas fa-check-circle me-2 text-success"></i>Get personalized insights for performance improvement</li>
-            </ul>
-        </div>
+{% block title %}Resume Analysis - Student Performance Predictor{% endblock %}
 
-        <div class="upload-section">
-            <form id="uploadForm" enctype="multipart/form-data">
-                <div class="custom-file-upload" id="drop-zone">
-                    <i class="fas fa-file-pdf fa-3x mb-3 text-primary"></i>
-                    <h4>Upload Resume</h4>
-                    <p>Drag and drop your PDF file here or click to browse</p>
-                    <input type="file" id="resumeFile" name="resume" accept=".pdf" style="display: none">
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Analyze Resume</button>
-            </form>
-        </div>
+{% block extra_css %}
+<style>
+    body {
+        background-color: lightblue;
+        min-height: 100vh;
+        color: white;
+    }
+    .upload-section {
+        background-color: rgba(51, 51, 51, 0.9);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        color: white;
+    }
+    .description-section {
+        margin-top: 2rem;
+        padding: 2rem;
+        background-color: rgba(51, 51, 51, 0.9);
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        color: white;
+    }
+    #uploadForm {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .custom-file-upload {
+        border: 2px dashed #666666;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        background-color: rgba(51, 51, 51, 0.8);
+        transition: all 0.3s;
+        color: white;
+    }
+    .custom-file-upload:hover {
+        background-color: rgba(68, 68, 68, 0.95);
+        transform: translateY(-2px);
+    }
+    #result-section {
+        display: none;
+        margin-top: 2rem;
+    }
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        background-color: rgba(51, 51, 51, 0.95);
+        color: white;
+    }
+    .card-title {
+        color: #ffffff;
+        font-weight: 600;
+    }
+    .progress {
+        height: 25px;
+        border-radius: 12px;
+        background-color: rgba(0,0,0,0.3);
+    }
+    .progress-bar {
+        background-color: #666666;
+    }
+    .list-group-item {
+        border: none;
+        background-color: rgba(68, 68, 68, 0.8);
+        margin-bottom: 5px;
+        border-radius: 8px;
+        color: white;
+    }
+    .text-primary {
+        color: #ffffff !important;
+    }
+    .text-success {
+        color: #4CAF50 !important;
+    }
+</style>
+{% endblock %}
 
-        <div id="result-section" class="description-section">
-            <h3><i class="fas fa-chart-bar me-2"></i>Analysis Results</h3>
-            <div id="analysis-results">
-                <!-- Results will be populated here -->
-            </div>
+{% block content %}
+<h1 class="text-center mt-4 mb-4">Resume Analysis</h1>
+
+<div class="description-section">
+    <h3><i class="fas fa-info-circle me-2"></i>About Resume Analysis</h3>
+    <p>Our resume analysis tool helps evaluate student profiles through their CV/Resume. Upload your resume in PDF format to:</p>
+    <ul class="list-unstyled">
+        <li><i class="fas fa-check-circle me-2 text-success"></i>Extract key skills and competencies</li>
+        <li><i class="fas fa-check-circle me-2 text-success"></i>Identify academic achievements</li>
+        <li><i class="fas fa-check-circle me-2 text-success"></i>Analyze extracurricular activities</li>
+        <li><i class="fas fa-check-circle me-2 text-success"></i>Get personalized insights for performance improvement</li>
+    </ul>
+</div>
+
+<div class="upload-section">
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="custom-file-upload" id="drop-zone">
+            <i class="fas fa-file-pdf fa-3x mb-3 text-primary"></i>
+            <h4>Upload Resume</h4>
+            <p>Drag and drop your PDF file here or click to browse</p>
+            <input type="file" id="resumeFile" name="resume" accept=".pdf" style="display: none">
         </div>
+        <button type="submit" class="btn btn-primary w-100">Analyze Resume</button>
+    </form>
+</div>
+
+<div id="result-section" class="description-section">
+    <h3><i class="fas fa-chart-bar me-2"></i>Analysis Results</h3>
+    <div id="analysis-results">
+        <!-- Results will be populated here -->
     </div>
+</div>
+{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropZone = document.getElementById('drop-zone');
-            const fileInput = document.getElementById('resumeFile');
-            const uploadForm = document.getElementById('uploadForm');
-            const resultSection = document.getElementById('result-section');
-
-            // Handle click to upload
-            dropZone.addEventListener('click', () => fileInput.click());
-
-            // Handle drag and drop
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.backgroundColor = 'rgba(68, 68, 68, 0.95)';
-            });
-
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.style.backgroundColor = 'rgba(51, 51, 51, 0.8)';
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.style.backgroundColor = 'rgba(51, 51, 51, 0.8)';
-                if (e.dataTransfer.files.length) {
-                    fileInput.files = e.dataTransfer.files;
-                    updateFileName(e.dataTransfer.files[0].name);
-                }
-            });
-
-            // Handle file selection
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length) {
-                    updateFileName(e.target.files[0].name);
-                }
-            });
-
-            // Handle form submission
-            uploadForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData();
-                formData.append('resume', fileInput.files[0]);
-
-                try {
-                    const response = await fetch('/api/analyze_resume', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await response.json();
-                    displayResults(data);
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred while analyzing the resume.');
-                }
-            });
-
-            function updateFileName(fileName) {
-                document.querySelector('.custom-file-upload p').textContent = `Selected file: ${fileName}`;
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('resumeFile');
+        const uploadForm = document.getElementById('uploadForm');
+        const resultSection = document.getElementById('result-section');
+        const analysisResults = document.getElementById('analysis-results');
+        
+        // Handle file browse click
+        dropZone.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                dropZone.innerHTML = `
+                    <i class="fas fa-file-pdf fa-3x mb-3 text-success"></i>
+                    <h4>File Selected</h4>
+                    <p>${fileInput.files[0].name}</p>
+                `;
             }
-
-            function displayResults(data) {
-                resultSection.style.display = 'block';
-                const resultsDiv = document.getElementById('analysis-results');
-                
-                // Check if we have the new API format or the old one
-                if (data.skills) {
-                    // New format
-                    resultsDiv.innerHTML = `
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="fas fa-code me-2"></i>Skills Identified</h5>
-                                <p class="card-text">${Array.isArray(data.skills) ? data.skills.join(', ') : data.skills}</p>
-                                <h5 class="card-title mt-3"><i class="fas fa-graduation-cap me-2"></i>Academic Achievements</h5>
-                                <p class="card-text">${data.academics}</p>
-                                <h5 class="card-title mt-3"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5>
-                                <p class="card-text">${Array.isArray(data.recommendations) ? data.recommendations.join('<br>') : data.recommendations}</p>
-                            </div>
-                        </div>
+        });
+        
+        // Handle drag and drop
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.style.backgroundColor = 'rgba(80, 80, 80, 0.9)';
+        });
+        
+        dropZone.addEventListener('dragleave', function() {
+            dropZone.style.backgroundColor = 'rgba(51, 51, 51, 0.8)';
+        });
+        
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.style.backgroundColor = 'rgba(51, 51, 51, 0.8)';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                if (fileInput.files[0].type === 'application/pdf') {
+                    dropZone.innerHTML = `
+                        <i class="fas fa-file-pdf fa-3x mb-3 text-success"></i>
+                        <h4>File Selected</h4>
+                        <p>${fileInput.files[0].name}</p>
                     `;
                 } else {
-                    // Old format with score, contentScore, etc.
-                    resultsDiv.innerHTML = `
-                        <div class="card mb-4">
+                    alert('Please upload a PDF file');
+                }
+            }
+        });
+        
+        // Handle form submission
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!fileInput.files.length) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('resume', fileInput.files[0]);
+            
+            // Show loading state
+            dropZone.innerHTML = `
+                <i class="fas fa-spinner fa-spin fa-3x mb-3 text-primary"></i>
+                <h4>Analyzing...</h4>
+                <p>Please wait while we process your resume</p>
+            `;
+            
+            fetch('/api/analyze_resume', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show results
+                resultSection.style.display = 'block';
+                
+                // Generate score circles
+                const overallScore = data.score;
+                const contentScore = data.contentScore;
+                const formatScore = data.formatScore;
+                const styleScore = data.styleScore;
+                const skillsScore = data.skillsScore;
+                const recommendations = data.recommendations;
+                
+                let scoreColor;
+                if (overallScore >= 80) {
+                    scoreColor = 'success';
+                } else if (overallScore >= 60) {
+                    scoreColor = 'warning';
+                } else {
+                    scoreColor = 'danger';
+                }
+                
+                // Create the results HTML
+                analysisResults.innerHTML = `
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h2 class="text-${scoreColor}">${overallScore}%</h2>
+                                    <p class="mb-0">Overall Score</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Score Breakdown</h5>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Content</span>
+                                            <span>${contentScore}%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: ${contentScore}%" aria-valuenow="${contentScore}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Format</span>
+                                            <span>${formatScore}%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: ${formatScore}%" aria-valuenow="${formatScore}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Style</span>
+                                            <span>${styleScore}%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: ${styleScore}%" aria-valuenow="${styleScore}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Skills</span>
+                                            <span>${skillsScore}%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-danger" role="progressbar" style="width: ${skillsScore}%" aria-valuenow="${skillsScore}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add recommendations if any
+                if (recommendations && recommendations.length > 0) {
+                    analysisResults.innerHTML += `
+                        <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Overall Score</h5>
-                                <div class="progress mb-3" style="height: 25px;">
-                                    <div class="progress-bar" role="progressbar" style="width: ${data.score}%;" aria-valuenow="${data.score}" aria-valuemin="0" aria-valuemax="100">${data.score}%</div>
-                                </div>
-                                
-                                <h5 class="card-title mt-4"><i class="fas fa-file-alt me-2"></i>Content</h5>
-                                <div class="progress mb-2" style="height: 20px;">
-                                    <div class="progress-bar bg-info" role="progressbar" style="width: ${data.contentScore}%;" aria-valuenow="${data.contentScore}" aria-valuemin="0" aria-valuemax="100">${data.contentScore}%</div>
-                                </div>
-                                
-                                <h5 class="card-title mt-3"><i class="fas fa-align-left me-2"></i>Format & Brevity</h5>
-                                <div class="progress mb-2" style="height: 20px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: ${data.formatScore}%;" aria-valuenow="${data.formatScore}" aria-valuemin="0" aria-valuemax="100">${data.formatScore}%</div>
-                                </div>
-                                
-                                <h5 class="card-title mt-3"><i class="fas fa-paint-brush me-2"></i>Style</h5>
-                                <div class="progress mb-2" style="height: 20px;">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: ${data.styleScore}%;" aria-valuenow="${data.styleScore}" aria-valuemin="0" aria-valuemax="100">${data.styleScore}%</div>
-                                </div>
-                                
-                                <h5 class="card-title mt-3"><i class="fas fa-code me-2"></i>Skills Match</h5>
-                                <div class="progress mb-2" style="height: 20px;">
-                                    <div class="progress-bar bg-danger" role="progressbar" style="width: ${data.skillsScore}%;" aria-valuenow="${data.skillsScore}" aria-valuemin="0" aria-valuemax="100">${data.skillsScore}%</div>
-                                </div>
-                                
-                                <h5 class="card-title mt-4"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5>
+                                <h5 class="card-title"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5>
                                 <ul class="list-group">
-                                    ${data.recommendations.map(rec => `<li class="list-group-item"><i class="fas fa-arrow-right me-2 text-primary"></i>${rec}</li>`).join('')}
+                                    ${recommendations.map(rec => `<li class="list-group-item"><i class="fas fa-arrow-right me-2"></i>${rec}</li>`).join('')}
                                 </ul>
                             </div>
                         </div>
                     `;
                 }
-            }
+                
+                // Reset the file upload section
+                dropZone.innerHTML = `
+                    <i class="fas fa-file-pdf fa-3x mb-3 text-primary"></i>
+                    <h4>Upload Resume</h4>
+                    <p>Drag and drop your PDF file here or click to browse</p>
+                `;
+                fileInput.value = '';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error analyzing resume. Please try again.');
+                
+                // Reset the file upload section
+                dropZone.innerHTML = `
+                    <i class="fas fa-file-pdf fa-3x mb-3 text-primary"></i>
+                    <h4>Upload Resume</h4>
+                    <p>Drag and drop your PDF file here or click to browse</p>
+                `;
+            });
         });
-    </script>
-</body>
-</html> 
+    });
+</script>
+{% endblock %} 

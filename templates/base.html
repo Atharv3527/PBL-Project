@@ -26,27 +26,49 @@
         }
         
         .navbar {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem 0;
+            background-color: #1a237e !important;  /* Darker blue background */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            padding: 0.5rem 1rem;
+            height: 70px; /* Fixed height for consistency */
         }
         
         .navbar-brand {
             font-weight: 600;
             color: white !important;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
         }
         
         .nav-link {
-            color: rgba(255,255,255,0.8) !important;
+            color: white !important;
             transition: var(--transition);
             padding: 0.5rem 1rem;
-            border-radius: 5px;
+            border-radius: 4px;
+            margin: 0 4px;
+            border: none;
+            background-color: transparent;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
         }
         
         .nav-link:hover {
             color: white !important;
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .nav-link.active {
+            background-color: #e53935 !important;  /* Brighter red color with !important */
+            color: white !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: none;
+        }
+        
+        .nav-link i {
+            margin-right: 8px;
+            font-size: 1rem;
         }
         
         .card {
@@ -232,13 +254,12 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand me-4" href="{{ url_for('index') }}" style="color: grey;">
-                <i class="fas fa-home"></i> Home
+            <a class="navbar-brand me-4" href="{{ url_for('index') }}" style="color: white;">
+                <i class="fas fa-home"></i>
             </a>
             <a class="navbar-brand" href="{{ url_for('index') }}">
                 <i class="fas fa-graduation-cap me-2"></i>
-                Student Performance Prediction
-                <span class="badge bg-warning text-dark">Updated</span>
+                Student Performance Predictor
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -246,27 +267,37 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' or request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                        <a class="nav-link {% if request.path == '/' or request.path == '/dashboard' %}active{% endif %}" 
+                           href="{{ url_for('dashboard') }}"
+                           {% if request.path == '/' or request.path == '/dashboard' %}style="background-color: #e53935 !important;"{% endif %}>
                             <i class="fas fa-chart-line me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/add_student' %}active{% endif %}" href="{{ url_for('add_student') }}">
+                        <a class="nav-link {% if request.path == '/add_student' %}active{% endif %}" 
+                           href="{{ url_for('add_student') }}"
+                           {% if request.path == '/add_student' %}style="background-color: #e53935 !important;"{% endif %}>
                             <i class="fas fa-user-plus me-1"></i>Add Student
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/predict' %}active{% endif %}" href="{{ url_for('predict') }}">
+                        <a class="nav-link {% if request.path == '/predict' %}active{% endif %}" 
+                           href="{{ url_for('predict_page') }}"
+                           {% if request.path == '/predict' %}style="background-color: #e53935 !important;"{% endif %}>
                             <i class="fas fa-chart-bar me-1"></i>Predict Performance
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/resume_analysis' %}active{% endif %}" href="{{ url_for('resume_analysis') }}">
+                        <a class="nav-link {% if request.path == '/resume_analysis' %}active{% endif %}" 
+                           href="{{ url_for('resume_analysis') }}"
+                           {% if request.path == '/resume_analysis' %}style="background-color: #e53935 !important;"{% endif %}>
                             <i class="fas fa-file-alt me-1"></i>Resume Analysis
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="{{ url_for('about') }}">
+                        <a class="nav-link {% if request.path == '/about' %}active{% endif %}" 
+                           href="{{ url_for('about') }}"
+                           {% if request.path == '/about' %}style="background-color: #e53935 !important;"{% endif %}>
                             <i class="fas fa-info-circle me-1"></i>About
                         </a>
                     </li>

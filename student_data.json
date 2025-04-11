@@ -61,5 +61,26 @@
         "peer_group_quality": "Good",
         "submission_timeliness": "Average",
         "performance": 74.4
+    },
+    {
+        "name": "Atharv Waykar",
+        "gender": "male",
+        "study_hours": 6.0,
+        "previous_grades": 95.0,
+        "attendance": 94.0,
+        "participation_score": 8.0,
+        "assignment_timeliness": "always_on_time",
+        "learning_style": "reading_writing",
+        "socio_economic_status": "middle",
+        "parents_education": "graduate",
+        "parent_meeting_freq": "sometimes",
+        "study_environment": "moderate",
+        "extracurricular": "moderate",
+        "home_support": "moderate",
+        "sleep_duration": 6.0,
+        "stress_level": 8.0,
+        "physical_activity": 3.0,
+        "peer_academic_quality": "moderate",
+        "performance": 65.88
     }
 ]
