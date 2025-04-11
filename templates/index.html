@@ -45,9 +45,9 @@
                         <a href="{{ url_for('add_student') }}" class="btn btn-primary me-2">
                             <i class="fas fa-user-plus me-2"></i>Add New Student
                         </a>
-                        <a href="{{ url_for('about') }}" class="btn btn-outline-secondary">
+                        <button class="btn btn-outline-secondary" id="learn-more-btn">
                             <i class="fas fa-info-circle me-2"></i>Learn More
-                        </a>
+                        </button>
                     </div>
                 </div>
                 <div class="col-md-4 d-flex align-items-center justify-content-center">
@@ -56,7 +56,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row mb-4">
         <div class="col-md-6 col-lg-3 mb-3">
             <div class="card text-center h-100 shadow-sm stat-card">
@@ -65,7 +65,7 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <h5 class="card-title">Total Students</h5>
-                    <h3 id="total-students">{{ students|length }}</h3>
+                    <h3 id="total-students">3</h3>
                 </div>
             </div>
         </div>
@@ -76,13 +76,7 @@
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <h5 class="card-title">Average Performance</h5>
-                    <h3 id="avg-performance">
-                        {% if students %}
-                            {{ (students|map(attribute='performance')|sum / students|length)|round }}%
-                        {% else %}
-                            0%
-                        {% endif %}
-                    </h3>
+                    <h3 id="avg-performance">75%</h3>
                 </div>
             </div>
         </div>
@@ -93,13 +87,7 @@
                         <i class="fas fa-trophy"></i>
                     </div>
                     <h5 class="card-title">Top Performance</h5>
-                    <h3 id="top-performance">
-                        {% if students %}
-                            {{ students|map(attribute='performance')|max|round }}%
-                        {% else %}
-                            0%
-                        {% endif %}
-                    </h3>
+                    <h3 id="top-performance">82.3%</h3>
                 </div>
             </div>
         </div>
@@ -110,13 +98,7 @@
                         <i class="fas fa-clock"></i>
                     </div>
                     <h5 class="card-title">Average Study Hours</h5>
-                    <h3 id="avg-study-hours">
-                        {% if students %}
-                            {{ (students|map(attribute='study_hours')|sum / students|length)|round(1) }}
-                        {% else %}
-                            0
-                        {% endif %}
-                    </h3>
+                    <h3 id="avg-study-hours">3.7</h3>
                 </div>
             </div>
         </div>
@@ -147,34 +129,6 @@
                         </tr>
                     </thead>
                     <tbody id="students-table-body">
-                        {% if students %}
-                            {% for student in students %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ student.name }}</td>
-                                <td>{{ student.study_hours }}</td>
-                                <td>{{ student.attendance }}</td>
-                                <td>{{ student.previous_grades }}</td>
-                                <td>{{ student.participation_score }}</td>
-                                <td>{{ student.socio_economic_status }}</td>
-                                <td><span class="badge bg-success">{{ student.performance|round }}%</span></td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ url_for('predict_page') }}" class="btn btn-sm btn-success">
-                                            <i class="fas fa-bolt me-1"></i> Predict
-                                        </a>
-                                        <button class="btn btn-sm btn-danger delete-student" data-index="{{ loop.index0 }}">
-                                            <i class="fas fa-trash me-1"></i> Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="9" class="text-center">No students data available</td>
-                            </tr>
-                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -186,8 +140,7 @@
 {% block extra_js %}
 <script>
     // Print debug info to console
-    console.log("Student data available:", "{{ students|length > 0 }}");
-    console.log("Number of students:", "{{ students|length }}");
+    console.log("Student data loading initialized");
     
     document.addEventListener('DOMContentLoaded', function() {
         console.log("DOM loaded");
@@ -195,9 +148,7 @@
         // Get elements
         const studentDataTableCard = document.getElementById('student-data-table-card');
         const showStudentDataBtn = document.getElementById('show-student-data-btn');
-        
-        console.log("Table element found:", !!studentDataTableCard);
-        console.log("Button element found:", !!showStudentDataBtn);
+        const studentsTableBody = document.getElementById('students-table-body');
         
         // Make sure table is properly initialized as hidden
         if (studentDataTableCard) {
@@ -205,55 +156,139 @@
             console.log("Table hidden on load");
         }
         
-        // Simpler toggle approach
+        // Toggle table visibility and load data
         if (showStudentDataBtn) {
             showStudentDataBtn.addEventListener('click', function() {
                 console.log("Button clicked");
                 
-                // Simplified toggle
                 if (studentDataTableCard.style.display === 'none') {
-                    studentDataTableCard.style.display = 'block';
-                    showStudentDataBtn.innerHTML = '<i class="fas fa-eye-slash me-2"></i>Hide Student Data';
-                    console.log("Table shown");
+                    // Load student data when showing the table
+                    fetch('/get_student_data')
+                        .then(response => response.json())
+                        .then(students => {
+                            console.log("Received students data:", students);
+                            
+                            // Clear existing table data
+                            studentsTableBody.innerHTML = '';
+                            
+                            // Add each student to the table
+                            students.forEach((student, index) => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${index + 1}</td>
+                                    <td>${student.name}</td>
+                                    <td>${student.study_hours}</td>
+                                    <td>${student.attendance}</td>
+                                    <td>${student.previous_grades}</td>
+                                    <td>${student.participation_score}</td>
+                                    <td>${student.socio_economic_status}</td>
+                                    <td><span class="badge bg-success">${student.performance}%</span></td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-success predict-btn" data-student-id="${index}">
+                                                <i class="fas fa-bolt me-1"></i> Predict
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-btn" data-student-id="${index}">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                `;
+                                studentsTableBody.appendChild(row);
+                            });
+                            
+                            // Update stats
+                            updateDashboardStats(students);
+                            
+                            // Show the table
+                            studentDataTableCard.style.display = 'block';
+                            showStudentDataBtn.innerHTML = '<i class="fas fa-eye-slash me-2"></i>Hide Student Data';
+                            console.log("Table shown");
+                        })
+                        .catch(error => {
+                            console.error("Error fetching student data:", error);
+                        });
                 } else {
+                    // Hide the table
                     studentDataTableCard.style.display = 'none';
                     showStudentDataBtn.innerHTML = '<i class="fas fa-table me-2"></i>View Student Data';
                     console.log("Table hidden");
                 }
             });
-            
-            // Direct onclick as a fallback
-            showStudentDataBtn.onclick = function() {
-                if (studentDataTableCard.style.display === 'none') {
-                    studentDataTableCard.style.display = 'block';
-                } else {
-                    studentDataTableCard.style.display = 'none';
-                }
-            };
         }
         
-        // Handle delete student
-        const deleteButtons = document.querySelectorAll('.delete-student');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const index = this.dataset.index;
-                if (confirm('Are you sure you want to delete this student?')) {
-                    fetch(`/api/students/${index}`, {
-                        method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        // Reload the page to reflect changes
-                        location.reload();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while deleting the student.');
-                    });
+        // Handle action buttons with event delegation
+        if (studentsTableBody) {
+            studentsTableBody.addEventListener('click', function(e) {
+                const target = e.target.closest('button');
+                if (!target) return;
+                
+                const studentId = target.dataset.studentId;
+                
+                if (target.classList.contains('predict-btn')) {
+                    // Handle prediction
+                    fetch(`/predict_student/${studentId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            alert(`Predicted performance: ${data.prediction}%\n\nSuggestions:\n${data.suggestions.join('\n')}`);
+                        });
+                } else if (target.classList.contains('delete-btn')) {
+                    // Handle delete
+                    if (confirm('Are you sure you want to delete this student?')) {
+                        fetch(`/delete_student/${studentId}`, { method: 'DELETE' })
+                            .then(response => response.json())
+                            .then(data => {
+                                // Remove row from table
+                                target.closest('tr').remove();
+                                // Reload student data to update stats
+                                fetch('/get_student_data')
+                                    .then(response => response.json())
+                                    .then(students => {
+                                        updateDashboardStats(students);
+                                    });
+                                alert(data.message);
+                            });
+                    }
                 }
             });
-        });
+        }
+        
+        // Load initial stats
+        fetch('/get_student_data')
+            .then(response => response.json())
+            .then(students => {
+                updateDashboardStats(students);
+            });
     });
+    
+    // Function to update dashboard statistics
+    function updateDashboardStats(students) {
+        if (!students || students.length === 0) return;
+        
+        // Calculate statistics
+        const totalStudents = students.length;
+        
+        let totalPerformance = 0;
+        let maxPerformance = 0;
+        let totalStudyHours = 0;
+        
+        students.forEach(student => {
+            const performance = parseFloat(student.performance);
+            totalPerformance += performance;
+            if (performance > maxPerformance) {
+                maxPerformance = performance;
+            }
+            totalStudyHours += parseFloat(student.study_hours);
+        });
+        
+        const avgPerformance = totalPerformance / totalStudents;
+        const avgStudyHours = totalStudyHours / totalStudents;
+        
+        // Update the DOM
+        document.getElementById('total-students').textContent = totalStudents;
+        document.getElementById('avg-performance').textContent = avgPerformance.toFixed(1) + '%';
+        document.getElementById('top-performance').textContent = maxPerformance.toFixed(1) + '%';
+        document.getElementById('avg-study-hours').textContent = avgStudyHours.toFixed(1);
+    }
 </script>
 {% endblock %} 

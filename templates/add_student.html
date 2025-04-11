@@ -2,6 +2,53 @@
 
 {% block title %}Add Student - Student Performance Predictor{% endblock %}
 
+{% block extra_css %}
+<style>
+    body {
+        background-color: #e6f7ff; /* Light blue background */
+        min-height: 100vh;
+    }
+    
+    .card {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(26, 117, 255, 0.25);
+    }
+    
+    h6 {
+        font-weight: 600;
+        color: #1a75ff !important;
+        border-bottom: 1px solid #e1e1e1;
+        padding-bottom: 8px;
+        margin-top: 20px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, #1a75ff, #003399);
+        border: none;
+        box-shadow: 0 4px 10px rgba(0, 50, 153, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 50, 153, 0.4);
+    }
+    
+    .form-label {
+        color: #003366;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">

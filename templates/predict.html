@@ -2,6 +2,65 @@
 
 {% block title %}Predict Performance - Student Performance Predictor{% endblock %}
 
+{% block extra_css %}
+<style>
+    body {
+        background-color: #e6f7ff; /* Light blue background */
+        min-height: 100vh;
+    }
+    
+    .card {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+    
+    .card-header {
+        background: linear-gradient(45deg, #1a75ff, #003399); /* Blue gradient header */
+        color: white;
+        border-top-left-radius: 12px !important;
+        border-top-right-radius: 12px !important;
+    }
+    
+    .card-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, #1a75ff, #003399);
+        border: none;
+        box-shadow: 0 4px 10px rgba(0, 50, 153, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 50, 153, 0.4);
+    }
+    
+    #prediction-results .card-header.bg-success {
+        background: linear-gradient(45deg, #28a745, #20c997) !important;
+    }
+    
+    #prediction-score {
+        color: #1a75ff;
+        font-weight: bold;
+    }
+    
+    .form-text {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    
+    .list-group-item {
+        border-left: 3px solid #1a75ff;
+        margin-bottom: 5px;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
