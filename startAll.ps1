@@ -13,8 +13,9 @@ if (-not (Test-Path "flask_api.py")) {
     exit 1
 }
 
-# Start Flask API in the background
+# Start Flask API in the background with the --no-browser flag
 Write-Host "Starting Flask API..."
+$env:FLASK_NO_OPEN_BROWSER = "true"
 Start-Process -NoNewWindow -FilePath "python" -ArgumentList "flask_api.py"
 
 # Wait for Flask API to start
@@ -25,9 +26,10 @@ Start-Sleep -Seconds 3
 Write-Host "Setting up React application..."
 Set-Location ".\client"
 
-# Create a temporary batch file to run React
+# Create a temporary batch file to run React without opening browser automatically
 @"
 cd C:\PBL Project\client
+set BROWSER=none
 npm start
 "@ | Out-File -FilePath "run_react.bat" -Encoding ascii
 
@@ -39,7 +41,7 @@ Start-Process -FilePath "run_react.bat" -WindowStyle Normal
 Write-Host "Waiting for React to start..."
 Start-Sleep -Seconds 5
 
-# Open browser
+# Open browser only for React app
 Write-Host "Opening browser..."
 Start-Process "http://localhost:3000"
 
@@ -47,5 +49,6 @@ Start-Process "http://localhost:3000"
 Set-Location "C:\PBL Project"
 
 Write-Host "Done! Your application should be running."
-Write-Host "- Flask API: http://127.0.0.1:5000"
-Write-Host "- React App: http://localhost:3000" 
+Write-Host "- Flask API running on: http://127.0.0.1:5000"
+Write-Host "- React App running on: http://localhost:3000"
+Write-Host "Note: Only the React app window has been opened in your browser." 

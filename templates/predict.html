@@ -5,232 +5,359 @@
 {% block extra_css %}
 <style>
     body {
-        background-color: #e6f7ff; /* Light blue background */
+        background-color: #e6f7ff;
         min-height: 100vh;
     }
     
+    .main-heading {
+        text-align: center;
+        margin: 2rem 0;
+        color: #1a237e;
+        position: relative;
+        padding-bottom: 1rem;
+    }
+    
+    .main-heading h2 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-heading::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(135deg, #1a75ff, #003399);
+        border-radius: 2px;
+    }
+    
     .card {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-radius: 12px;
-        margin-bottom: 25px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border-radius: 16px;
+        margin-bottom: 30px;
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .prediction-card {
+        display: none;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
     }
     
     .card-header {
-        background: linear-gradient(45deg, #1a75ff, #003399); /* Blue gradient header */
+        background: linear-gradient(135deg, #1a75ff, #003399);
         color: white;
-        border-top-left-radius: 12px !important;
-        border-top-right-radius: 12px !important;
+        border-top-left-radius: 16px !important;
+        border-top-right-radius: 16px !important;
+        padding: 1.5rem;
     }
     
     .card-header h5 {
         margin-bottom: 0;
         font-weight: 600;
+        font-size: 1.25rem;
+        letter-spacing: 0.5px;
     }
     
-    .btn-primary {
-        background: linear-gradient(to right, #1a75ff, #003399);
-        border: none;
-        box-shadow: 0 4px 10px rgba(0, 50, 153, 0.3);
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem;
         transition: all 0.3s ease;
     }
-    
+
+    .form-control:focus, .form-select:focus {
+        border-color: #1a75ff;
+        box-shadow: 0 0 0 0.2rem rgba(26, 117, 255, 0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #1a75ff, #003399);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(0, 50, 153, 0.3);
+        transition: all 0.3s ease;
+    }
+
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 50, 153, 0.4);
+        box-shadow: 0 6px 20px rgba(0, 50, 153, 0.4);
     }
-    
-    #prediction-results .card-header.bg-success {
-        background: linear-gradient(45deg, #28a745, #20c997) !important;
-    }
-    
-    #prediction-score {
+
+    .prediction-score {
+        font-size: 3rem;
+        font-weight: 700;
         color: #1a75ff;
-        font-weight: bold;
+        text-align: center;
+        margin: 1.5rem 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
-    
-    .form-text {
-        color: #6c757d;
-        font-size: 0.85rem;
+
+    .prediction-category {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: rgba(26, 117, 255, 0.1);
+        color: #1a75ff;
     }
-    
-    .list-group-item {
-        border-left: 3px solid #1a75ff;
-        margin-bottom: 5px;
-        border-radius: 5px;
+
+    .factors-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .factor-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .factor-item:hover {
+        transform: translateX(5px);
+    }
+
+    .factor-icon {
+        width: 40px;
+        height: 40px;
+        background: #1a75ff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .suggestions {
+        background: #e8f5e9;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .suggestions h6 {
+        color: #2e7d32;
+        margin-bottom: 1rem;
+    }
+
+    .suggestion-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .suggestion-item:before {
+        content: '✓';
+        color: #2e7d32;
+        margin-right: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .prediction-score {
+            font-size: 2.5rem;
+        }
+
+        .prediction-category {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Loading animation */
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #1a75ff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Predict Student Performance</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('predict') }}" id="prediction-form">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label">Student Name (Optional)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <input type="text" class="form-control" id="name" name="name">
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="study_hours" class="form-label">Study Hours (per day)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-clock"></i>
-                                </span>
-                                <input type="number" class="form-control" id="study_hours" name="study_hours" 
-                                       min="0" max="24" step="0.5" required>
-                            </div>
-                            <div class="form-text">Enter a value between 0 and 24</div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="attendance" class="form-label">Attendance (%)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-calendar-check"></i>
-                                </span>
-                                <input type="number" class="form-control" id="attendance" name="attendance" 
-                                       min="0" max="100" required>
-                            </div>
-                            <div class="form-text">Enter a value between 0 and 100</div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="previous_grades" class="form-label">Previous Grades</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-star"></i>
-                                </span>
-                                <input type="number" class="form-control" id="previous_grades" name="previous_grades" 
-                                       min="0" max="100" required>
-                            </div>
-                            <div class="form-text">Enter a value between 0 and 100</div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="participation_score" class="form-label">Participation Score</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-hand-paper"></i>
-                                </span>
-                                <input type="number" class="form-control" id="participation_score" name="participation_score" 
-                                       min="0" max="10" step="0.1" required>
-                            </div>
-                            <div class="form-text">Enter a value between 0 and 10</div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="socio_economic_status" class="form-label">Socio-Economic Status</label>
-                            <select class="form-select" id="socio_economic_status" name="socio_economic_status" required>
-                                <option value="" selected disabled>Select status</option>
-                                <option value="Low">Low</option>
-                                <option value="Middle">Middle</option>
-                                <option value="High">High</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="extracurricular" class="form-label">Extracurricular Activities</label>
-                            <select class="form-select" id="extracurricular" name="extracurricular" required>
-                                <option value="" selected disabled>Select level</option>
-                                <option value="None">None</option>
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="learning_style" class="form-label">Learning Style</label>
-                            <select class="form-select" id="learning_style" name="learning_style" required>
-                                <option value="" selected disabled>Select style</option>
-                                <option value="Visual">Visual</option>
-                                <option value="Auditory">Auditory</option>
-                                <option value="Reading/Writing">Reading/Writing</option>
-                                <option value="Kinesthetic">Kinesthetic</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <!-- Additional fields -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="gender" class="form-label">Gender</label>
-                            <select class="form-select" id="gender" name="gender" required>
-                                <option value="" selected disabled>Select gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="parents_education" class="form-label">Parents' Education</label>
-                            <select class="form-select" id="parents_education" name="parents_education" required>
-                                <option value="" selected disabled>Select education level</option>
-                                <option value="Primary">Primary</option>
-                                <option value="Secondary">Secondary</option>
-                                <option value="Higher">Higher</option>
-                                <option value="Graduate">Graduate</option>
-                                <option value="Post-Graduate">Post-Graduate</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-chart-line me-2"></i>Predict Performance
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="container-fluid">
+    <div class="main-heading">
+        <h2>Predict Student Performance</h2>
     </div>
-</div>
 
-<div class="row justify-content-center mt-4" id="prediction-results" style="display: none;">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Prediction Results</h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center">
-                    <h3>Predicted Performance Score</h3>
-                    <div class="display-4 mb-4" id="prediction-score">--</div>
-                    <div class="mb-3">
-                        <span class="badge bg-primary fs-6" id="performance-category">--</span>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Predict Student Performance</h5>
                     </div>
-                </div>
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-chart-line me-2"></i>Top Factors</h5>
-                        <ul class="list-group" id="top-factors">
-                            <!-- Top factors will be inserted here -->
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-lightbulb me-2"></i>Suggestions</h5>
-                        <ul class="list-group" id="suggestions">
-                            <!-- Suggestions will be inserted here -->
-                        </ul>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="mb-3">
+                                <label for="student_name" class="form-label">Student Name</label>
+                                <input type="text" class="form-control" id="student_name" name="student_name" required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="study_hours" class="form-label">Study Hours per Week</label>
+                                    <input type="number" class="form-control" id="study_hours" name="study_hours" min="0" max="168" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="attendance" class="form-label">Attendance (%)</label>
+                                    <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="previous_grades" class="form-label">Previous Grades Average</label>
+                                    <input type="number" class="form-control" id="previous_grades" name="previous_grades" min="0" max="100" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="participation_score" class="form-label">Participation Score</label>
+                                    <input type="number" class="form-control" id="participation_score" name="participation_score" min="0" max="100" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="socio_economic_status" class="form-label">Socio-economic Status</label>
+                                    <select class="form-select" id="socio_economic_status" name="socio_economic_status" required>
+                                        <option value="">Select status</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="extracurricular_activities" class="form-label">Extracurricular Activities</label>
+                                    <select class="form-select" id="extracurricular_activities" name="extracurricular_activities" required>
+                                        <option value="">Select participation</option>
+                                        <option value="none">None</option>
+                                        <option value="moderate">Moderate</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="learning_style" class="form-label">Learning Style</label>
+                                    <select class="form-select" id="learning_style" name="learning_style" required>
+                                        <option value="">Select style</option>
+                                        <option value="visual">Visual</option>
+                                        <option value="auditory">Auditory</option>
+                                        <option value="kinesthetic">Kinesthetic</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender" required>
+                                        <option value="">Select gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="parents_education" class="form-label">Parents' Education Level</label>
+                                <select class="form-select" id="parents_education" name="parents_education" required>
+                                    <option value="">Select education level</option>
+                                    <option value="high_school">High School</option>
+                                    <option value="bachelors">Bachelor's Degree</option>
+                                    <option value="masters">Master's Degree</option>
+                                    <option value="phd">PhD</option>
+                                </select>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Predict Performance</button>
+                            </div>
+                        </form>
+
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Analyzing student data...</p>
+                        </div>
+
+                        <div class="prediction-card mt-4">
+                            <div class="prediction-score">
+                                <span id="predictionScore">85</span>%
+                            </div>
+                            <div class="prediction-category" id="predictionCategory">
+                                High Performer
+                            </div>
+                            
+                            <h6 class="mb-3">Top Influencing Factors:</h6>
+                            <ul class="factors-list" id="factorsList">
+                                <!-- Factors will be dynamically added here -->
+                            </ul>
+
+                            <div class="suggestions">
+                                <h6>Suggestions for Improvement</h6>
+                                <div id="suggestionsList">
+                                    <!-- Suggestions will be dynamically added here -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -242,92 +369,89 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const predictionForm = document.getElementById('prediction-form');
-    const predictionResults = document.getElementById('prediction-results');
-    const predictionScore = document.getElementById('prediction-score');
-    const performanceCategory = document.getElementById('performance-category');
-    const topFactors = document.getElementById('top-factors');
-    const suggestions = document.getElementById('suggestions');
-    
-    predictionForm.addEventListener('submit', function(e) {
+    const form = document.getElementById('predictionForm');
+    const loadingDiv = document.querySelector('.loading');
+    const predictionCard = document.querySelector('.prediction-card');
+    const factorsList = document.getElementById('factorsList');
+    const suggestionsList = document.getElementById('suggestionsList');
+
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Gather form data
-        const formData = new FormData(predictionForm);
-        const jsonData = {};
-        
-        formData.forEach((value, key) => {
-            // Convert numeric values to numbers
-            if (!isNaN(value) && value !== '') {
-                jsonData[key] = parseFloat(value);
-            } else {
-                jsonData[key] = value;
-            }
-        });
-        
-        console.log('Sending data:', jsonData);
-        
-        // Send prediction request
-        fetch('/api/predict', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Display prediction results
-            predictionScore.textContent = data.prediction;
-            performanceCategory.textContent = data.performance_category;
+        // Show loading animation
+        form.style.display = 'none';
+        loadingDiv.style.display = 'block';
+        predictionCard.style.display = 'none';
+
+        // Collect form data
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            // Update prediction results
+            document.getElementById('predictionScore').textContent = result.score;
+            document.getElementById('predictionCategory').textContent = result.category;
+
+            // Clear previous factors
+            factorsList.innerHTML = '';
             
-            // Set badge color based on performance category
-            performanceCategory.className = 'badge fs-6';
-            if (data.performance_category === 'Excellent') {
-                performanceCategory.classList.add('bg-success');
-            } else if (data.performance_category === 'Good') {
-                performanceCategory.classList.add('bg-primary');
-            } else if (data.performance_category === 'Average') {
-                performanceCategory.classList.add('bg-warning');
-                performanceCategory.style.color = 'black';
-            } else {
-                performanceCategory.classList.add('bg-danger');
-            }
+            // Add new factors
+            result.factors.forEach(factor => {
+                const li = document.createElement('li');
+                li.className = 'factor-item';
+                li.innerHTML = `
+                    <div class="factor-icon">📊</div>
+                    <div>
+                        <strong>${factor.name}</strong>
+                        <div class="text-muted">${factor.impact}</div>
+                    </div>
+                `;
+                factorsList.appendChild(li);
+            });
+
+            // Clear previous suggestions
+            suggestionsList.innerHTML = '';
             
-            // Display top factors
-            topFactors.innerHTML = '';
-            if (data.top_factors) {
-                data.top_factors.forEach(factor => {
-                    let factorName = factor;
-                    // Make factor name more readable
-                    factorName = factorName.replace(/_/g, ' ');
-                    factorName = factorName.charAt(0).toUpperCase() + factorName.slice(1);
-                    
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item';
-                    li.innerHTML = `<i class="fas fa-check-circle me-2 text-success"></i>${factorName}`;
-                    topFactors.appendChild(li);
-                });
-            }
-            
-            // Display suggestions
-            suggestions.innerHTML = '';
-            if (data.suggestions) {
-                data.suggestions.forEach(suggestion => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item';
-                    li.innerHTML = `<i class="fas fa-arrow-right me-2 text-primary"></i>${suggestion}`;
-                    suggestions.appendChild(li);
-                });
-            }
-            
-            // Show results
-            predictionResults.style.display = 'block';
-            predictionResults.scrollIntoView({ behavior: 'smooth' });
-        })
-        .catch(error => {
+            // Add new suggestions
+            result.suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = suggestion;
+                suggestionsList.appendChild(div);
+            });
+
+            // Hide loading and show results
+            loadingDiv.style.display = 'none';
+            predictionCard.style.display = 'block';
+        } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while making the prediction.');
+            alert('An error occurred while processing your request. Please try again.');
+            
+            // Reset form view
+            loadingDiv.style.display = 'none';
+            form.style.display = 'block';
+        }
+    });
+
+    // Form validation and animation
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.checkValidity()) {
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+            }
         });
     });
 });
