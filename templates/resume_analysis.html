@@ -43,6 +43,7 @@
         transition: all 0.3s ease;
         background: rgba(63, 81, 181, 0.05);
         cursor: pointer;
+        margin-bottom: 1.5rem;
     }
 
     .drop-zone.dragover {
@@ -113,6 +114,42 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    .btn-analyze {
+        background: linear-gradient(135deg, #1a75ff, #003399);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        width: 100%;
+        max-width: 300px;
+        margin: 1rem auto;
+        display: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-analyze:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 50, 153, 0.3);
+    }
+
+    .btn-analyze i {
+        margin-right: 0.5rem;
+    }
+
+    .selected-file {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background: #e3f2fd;
+        border-radius: 4px;
+        display: none;
+    }
+
+    .selected-file i {
+        color: #1565c0;
+        margin-right: 0.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -137,6 +174,17 @@
         <p>or click to select a file</p>
         <p class="text-muted">Supported formats: PDF, DOC, DOCX (Max 5MB)</p>
         <input type="file" id="fileInput" accept=".pdf,.doc,.docx" style="display: none;">
+    </div>
+    
+    <div class="selected-file" id="selectedFile">
+        <i class="fas fa-file-alt"></i>
+        <span id="fileName"></span>
+    </div>
+
+    <div class="text-center">
+        <button class="btn btn-analyze" id="analyzeBtn">
+            <i class="fas fa-search"></i>Analyze Resume
+        </button>
     </div>
 
     <div class="results-container" id="resultsContainer">
@@ -189,6 +237,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/gauge-chart@0.5.3/dist/bundle.js"></script>
 <script>
+    let selectedFile = null;
+
     function debugLog(message, data = null) {
         console.log(`[Debug] ${message}`, data || '');
     }
@@ -198,17 +248,115 @@
         const maxSize = 5 * 1024 * 1024; // 5MB
 
         if (!allowedTypes.includes(file.type)) {
-            alert('Please upload a PDF, DOC, or DOCX file.');
-            return false;
+            throw new Error('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
         }
 
         if (file.size > maxSize) {
-            alert('File size must be less than 5MB.');
-            return false;
+            throw new Error('File size exceeds 5MB limit.');
         }
 
         return true;
     }
+
+    function showSelectedFile(file) {
+        const fileNameElement = document.getElementById('fileName');
+        const selectedFileElement = document.getElementById('selectedFile');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        
+        fileNameElement.textContent = file.name;
+        selectedFileElement.style.display = 'block';
+        analyzeBtn.style.display = 'block';
+    }
+
+    function handleFileSelect(file) {
+        try {
+            if (validateFile(file)) {
+                selectedFile = file;
+                showSelectedFile(file);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid File',
+                text: error.message,
+                confirmButtonColor: '#1a75ff'
+            });
+        }
+    }
+
+    document.getElementById('dropZone').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleFileSelect(file);
+        }
+    });
+
+    document.getElementById('analyzeBtn').addEventListener('click', async () => {
+        if (!selectedFile) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No File Selected',
+                text: 'Please select a resume file to analyze.',
+                confirmButtonColor: '#1a75ff'
+            });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('resume', selectedFile);
+
+        document.querySelector('.loading-overlay').style.display = 'flex';
+
+        try {
+            const response = await fetch('/analyze_resume', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                displayResults(result);
+            } else {
+                throw new Error(result.error || 'Failed to analyze resume');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Analysis Failed',
+                text: error.message || 'An error occurred while analyzing the resume',
+                confirmButtonColor: '#1a75ff'
+            });
+        } finally {
+            document.querySelector('.loading-overlay').style.display = 'none';
+        }
+    });
+
+    // Add drag and drop support
+    const dropZone = document.getElementById('dropZone');
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handleFileSelect(file);
+        }
+    });
 
     let gaugeInstance = null;
 
@@ -228,128 +376,55 @@
         gaugeInstance.updateValue(score / 100);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const loadingOverlay = document.querySelector('.loading-overlay');
-        const resultsContainer = document.getElementById('resultsContainer');
+    function displayResults(data) {
+        debugLog('Displaying results', data);
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
+        // Update ATS score and verdict
+        updateGauge(data.ats_score);
+        document.getElementById('atsVerdict').textContent = data.ats_verdict;
+        document.getElementById('atsSummary').textContent = data.ats_summary;
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        // Update technical skills
+        const technicalSkillsDiv = document.getElementById('technicalSkills');
+        technicalSkillsDiv.innerHTML = data.technical_skills.map(skill => 
+            `<span class="skill-badge ${skill.matched ? 'skill-matched' : 'skill-unmatched'}">
+                ${skill.name}
+            </span>`
+        ).join('');
+        document.getElementById('skillsMatchPercentage').textContent = data.skills_match_percentage;
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => {
-                dropZone.classList.add('dragover');
-            });
-        });
+        // Update soft skills
+        const softSkillsDiv = document.getElementById('softSkills');
+        softSkillsDiv.innerHTML = data.soft_skills.map(skill => 
+            `<span class="skill-badge skill-matched">${skill}</span>`
+        ).join('');
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => {
-                dropZone.classList.remove('dragover');
-            });
-        });
+        // Update education
+        const educationDiv = document.getElementById('education');
+        educationDiv.innerHTML = data.education.map(edu => 
+            `<div class="mb-2">
+                <strong>${edu.degree}</strong><br>
+                ${edu.institution} (${edu.year})
+            </div>`
+        ).join('');
 
-        dropZone.addEventListener('drop', handleDrop);
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', handleFileSelect);
+        // Update experience
+        const experienceDiv = document.getElementById('experience');
+        experienceDiv.innerHTML = data.experience.map(exp => 
+            `<div class="mb-2">
+                <strong>${exp.position}</strong><br>
+                ${exp.company} (${exp.duration})
+            </div>`
+        ).join('');
 
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const file = dt.files[0];
-            handleFile(file);
-        }
+        // Update recommendations
+        const recommendationsList = document.getElementById('recommendations');
+        recommendationsList.innerHTML = data.recommendations.map(rec => 
+            `<li class="list-group-item">${rec}</li>`
+        ).join('');
 
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            handleFile(file);
-        }
-
-        function handleFile(file) {
-            if (!validateFile(file)) return;
-
-            const formData = new FormData();
-            formData.append('resume', file);
-
-            loadingOverlay.style.display = 'flex';
-            resultsContainer.style.display = 'none';
-
-            fetch('/analyze_resume', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    displayResults(data);
-                } else {
-                    alert(data.error || 'An error occurred while analyzing the resume.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while analyzing the resume.');
-            })
-            .finally(() => {
-                loadingOverlay.style.display = 'none';
-            });
-        }
-
-        function displayResults(data) {
-            debugLog('Displaying results', data);
-
-            // Update ATS score and verdict
-            updateGauge(data.ats_score);
-            document.getElementById('atsVerdict').textContent = data.ats_verdict;
-            document.getElementById('atsSummary').textContent = data.ats_summary;
-
-            // Update technical skills
-            const technicalSkillsDiv = document.getElementById('technicalSkills');
-            technicalSkillsDiv.innerHTML = data.technical_skills.map(skill => 
-                `<span class="skill-badge ${skill.matched ? 'skill-matched' : 'skill-unmatched'}">
-                    ${skill.name}
-                </span>`
-            ).join('');
-            document.getElementById('skillsMatchPercentage').textContent = data.skills_match_percentage;
-
-            // Update soft skills
-            const softSkillsDiv = document.getElementById('softSkills');
-            softSkillsDiv.innerHTML = data.soft_skills.map(skill => 
-                `<span class="skill-badge skill-matched">${skill}</span>`
-            ).join('');
-
-            // Update education
-            const educationDiv = document.getElementById('education');
-            educationDiv.innerHTML = data.education.map(edu => 
-                `<div class="mb-2">
-                    <strong>${edu.degree}</strong><br>
-                    ${edu.institution} (${edu.year})
-                </div>`
-            ).join('');
-
-            // Update experience
-            const experienceDiv = document.getElementById('experience');
-            experienceDiv.innerHTML = data.experience.map(exp => 
-                `<div class="mb-2">
-                    <strong>${exp.position}</strong><br>
-                    ${exp.company} (${exp.duration})
-                </div>`
-            ).join('');
-
-            // Update recommendations
-            const recommendationsList = document.getElementById('recommendations');
-            recommendationsList.innerHTML = data.recommendations.map(rec => 
-                `<li class="list-group-item">${rec}</li>`
-            ).join('');
-
-            resultsContainer.style.display = 'block';
-            resultsContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-    });
+        resultsContainer.style.display = 'block';
+        resultsContainer.scrollIntoView({ behavior: 'smooth' });
+    }
 </script>
 {% endblock %} 

@@ -282,7 +282,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/predict' %}active{% endif %}" 
-                           href="{{ url_for('predict_page') }}"
+                           href="{{ url_for('predict') }}"
                            {% if request.path == '/predict' %}style="background-color: #e53935 !important;"{% endif %}>
                             <i class="fas fa-chart-bar me-1"></i>Predict Performance
                         </a>

@@ -734,246 +734,84 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addStudentForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const resultsSection = document.getElementById('results-container');
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Save original button text
-        const originalBtnText = submitBtn.innerHTML;
-        
         // Show loading state
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
-        submitBtn.disabled = true;
+        Swal.fire({
+            title: 'Saving...',
+            text: 'Please wait while we save the student data',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Collect form data
+        const formData = new FormData(form);
+        const studentData = {};
+        formData.forEach((value, key) => {
+            studentData[key] = value;
+        });
         
         try {
-            // Gather form data
-            const formData = {
-                name: document.getElementById('name').value,
-                study_hours: parseFloat(document.getElementById('study_hours').value),
-                attendance: parseFloat(document.getElementById('attendance').value),
-                previous_grades: parseFloat(document.getElementById('previous_grades').value),
-                participation_score: parseFloat(document.getElementById('participation_score').value),
-                socio_economic_status: document.getElementById('socio_economic_status').value,
-                assignment_submission_timeliness: document.getElementById('assignment_timeliness').value,
-                extracurricular_activities: document.getElementById('extracurricular').value,
-                learning_style: document.getElementById('learning_style').value,
-                gender: document.getElementById('gender').value,
-                parents_education: document.getElementById('parents_education').value
-            };
-
-            // Send data to server
-            const response = await fetch('/add_student', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Show success message
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Student data has been saved successfully.',
-                    showConfirmButton: true,
-                    confirmButtonText: 'View Results',
-                    showCancelButton: true,
-                    cancelButtonText: 'Add Another Student'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Predict performance and show results
-                        predictPerformance(formData);
-                    } else {
-                        // Reset form for new entry
-                        form.reset();
-                        resultsSection.style.display = 'none';
-                    }
-                });
-            } else {
-                throw new Error(result.error || 'Failed to save student data');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'An error occurred while saving the data.'
-            });
-        } finally {
-            // Reset button state
-            submitBtn.innerHTML = originalBtnText;
-            submitBtn.disabled = false;
-        }
-    });
-
-    async function predictPerformance(studentData) {
-        try {
-            const response = await fetch('/predict', {
+            // First get prediction
+            const predictionResponse = await fetch('/predict', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(studentData)
             });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                // Show results section
-                resultsSection.style.display = 'block';
+            
+            const predictionData = await predictionResponse.json();
+            
+            if (!predictionData.success) {
+                throw new Error(predictionData.error || 'Failed to get prediction');
+            }
+            
+            // Add prediction to student data
+            studentData.performance = predictionData.prediction;
+            
+            // Save student data
+            const saveResponse = await fetch('/api/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(studentData)
+            });
+            
+            const saveResult = await saveResponse.json();
+            
+            if (saveResponse.ok) {
+                // Show success message
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Student data has been saved successfully.',
+                    confirmButtonColor: '#1a75ff'
+                });
                 
-                // Update prediction score and category
-                document.getElementById('predictionScore').textContent = `${result.score}%`;
-                document.getElementById('predictionCategory').textContent = result.category;
-                document.getElementById('attendanceImpact').textContent = result.attendance_impact;
-
-                // Create visualization charts
-                createRadarChart(result.metrics);
-                createBarChart(result.feature_importance);
-                
-                // Update analysis table
-                updateAnalysisTable(result.analysis);
-                
-                // Update recommendations
-                updateRecommendations(result.suggestions);
-
-                // Scroll to results
-                resultsSection.scrollIntoView({ behavior: 'smooth' });
+                // Redirect to student data page
+                window.location.href = '/student_data';
             } else {
-                throw new Error(result.error || 'Failed to predict performance');
+                throw new Error(saveResult.error || 'Failed to save student data');
             }
         } catch (error) {
             console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.message || 'An error occurred while predicting performance.'
+                text: error.message || 'An error occurred while saving student data.',
+                confirmButtonColor: '#1a75ff'
             });
         }
-    }
-
-    // Chart creation functions
-    function createRadarChart(metrics) {
-        const ctx = document.getElementById('radar-chart').getContext('2d');
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: Object.keys(metrics),
-                datasets: [{
-                    label: 'Student Profile',
-                    data: Object.values(metrics),
-                    backgroundColor: 'rgba(26, 117, 255, 0.2)',
-                    borderColor: '#1a75ff',
-                    pointBackgroundColor: '#1a75ff'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
-        });
-    }
-
-    function createBarChart(data) {
-        const ctx = document.getElementById('bar-chart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.map(d => d.feature),
-                datasets: [{
-                    label: 'Feature Importance',
-                    data: data.map(d => d.importance),
-                    backgroundColor: '#1a75ff'
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-
-    function updateAnalysisTable(analysis) {
-        const tableBody = document.getElementById('analysis-table-body');
-        tableBody.innerHTML = '';
-
-        analysis.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.feature}</td>
-                <td>${item.value}</td>
-                <td>${item.normalized}</td>
-                <td><span class="badge bg-${getImpactColor(item.impact)}">${item.impact}</span></td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    function getImpactColor(impact) {
-        switch(impact.toLowerCase()) {
-            case 'positive':
-                return 'success';
-            case 'moderate':
-                return 'warning';
-            case 'needs improvement':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
-    }
-
-    function updateRecommendations(recommendations) {
-        const container = document.getElementById('recommendations-list');
-        container.innerHTML = '';
-
-        recommendations.forEach(rec => {
-            const div = document.createElement('div');
-            div.className = 'recommendation-item mb-3 p-3 bg-light rounded';
-            div.innerHTML = `
-                <div class="d-flex align-items-start">
-                    <div class="recommendation-icon me-3">
-                        <i class="fas fa-lightbulb text-warning"></i>
-                    </div>
-                    <div>
-                        <h6 class="mb-1">${rec.title || rec}</h6>
-                        ${rec.description ? `<p class="mb-0 text-muted">${rec.description}</p>` : ''}
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    // PDF Download function
-    function downloadReport() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // Add content to PDF
-        doc.setFontSize(20);
-        doc.text('Student Performance Report', 20, 20);
-        
-        // Add more content...
-        
-        // Save the PDF
-        doc.save('student-performance-report.pdf');
-    }
+    });
 });
 </script>
 {% endblock %} 

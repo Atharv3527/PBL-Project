@@ -149,78 +149,168 @@ def dashboard():
 @app.route('/add_student', methods=['GET', 'POST'])
 def add_student():
     if request.method == 'POST':
-        # Handle form submission
-        student_data = request.form.to_dict()
-        
-        # Convert numeric values to appropriate types
-        numeric_fields = [
-            'study_hours', 
-            'attendance', 
-            'previous_grades', 
-            'participation_score',
-            'sleep_duration',
-            'stress_level',
-            'physical_activity'
-        ]
-        
-        for field in numeric_fields:
-            if field in student_data and student_data[field]:
-                try:
-                    student_data[field] = float(student_data[field])
-                except ValueError:
-                    student_data[field] = 0  # Default value if conversion fails
-        
-        # Calculate performance using prediction model
-        prediction_result = make_prediction(student_data)
-        student_data['performance'] = prediction_result['prediction']
-        
-        # Add to students list
-        students.append(student_data)
-        save_data()  # Save to file
-        
-        # Redirect to dashboard
-        return redirect(url_for('dashboard'))
+        try:
+            # Get form data
+            student_data = request.form.to_dict()
+            
+            # Convert numeric fields
+            numeric_fields = ['study_hours', 'attendance', 'previous_grades', 'participation_score']
+            for field in numeric_fields:
+                if field in student_data:
+                    try:
+                        student_data[field] = float(student_data[field])
+                    except ValueError:
+                        student_data[field] = 0
+            
+            # Make prediction
+            prediction_result = make_prediction(student_data)
+            student_data['performance'] = prediction_result['prediction']
+            
+            # Add to students list and save
+            students.append(student_data)
+            save_data()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Student data added successfully'
+            })
+            
+        except Exception as e:
+            print(f"Error adding student: {e}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            })
         
     # GET request - just show the form
     return render_template('add_student.html')
 
-@app.route('/predict', methods=['GET', 'POST'])
+@app.route('/predict', methods=['GET'])
 def predict_page():
-    prediction_result = None
-    student_data = {}
-    
-    if request.method == 'POST':
-        # Handle form submission
-        student_data = request.form.to_dict()
+    return render_template('predict.html')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Get form data
+        data = request.form.to_dict()
         
-        # Convert numeric values to float
-        numeric_fields = [
-            'study_hours', 
-            'attendance', 
-            'previous_grades', 
-            'participation_score',
-            'sleep_duration',
-            'stress_level',
-            'physical_activity'
+        # Convert numeric fields
+        numeric_fields = ['study_hours', 'attendance', 'previous_grades', 'participation_score', 
+                         'sleep_duration', 'stress_level', 'physical_activity']
+        for field in numeric_fields:
+            if field in data:
+                try:
+                    data[field] = float(data[field])
+                except ValueError:
+                    data[field] = 0
+        
+        # Make prediction
+        result = make_prediction(data)
+        
+        # Get performance category
+        category = get_performance_category(result['prediction'])
+        
+        # Prepare performance factors
+        factors = [
+            {
+                'name': 'Study Hours',
+                'value': f"{data['study_hours']} hrs",
+                'impact': 'High' if data['study_hours'] >= 6 else 'Low'
+            },
+            {
+                'name': 'Attendance',
+                'value': f"{data['attendance']}%",
+                'impact': 'High' if data['attendance'] >= 85 else 'Medium'
+            },
+            {
+                'name': 'Previous Grades',
+                'value': f"{data['previous_grades']}",
+                'impact': 'High' if data['previous_grades'] >= 80 else 'Medium'
+            },
+            {
+                'name': 'Participation',
+                'value': f"{data['participation_score']}/10",
+                'impact': 'High' if data['participation_score'] >= 7 else 'Medium'
+            },
+            {
+                'name': 'Sleep Duration',
+                'value': f"{data['sleep_duration']} hrs",
+                'impact': 'Low' if data['sleep_duration'] < 7 else 'Medium'
+            },
+            {
+                'name': 'Stress Level',
+                'value': 'Low',
+                'impact': 'Medium'
+            },
+            {
+                'name': 'Physical Activity',
+                'value': 'Moderate',
+                'impact': 'Low'
+            }
         ]
         
-        for field in numeric_fields:
-            if field in student_data and student_data[field]:
-                try:
-                    student_data[field] = float(student_data[field])
-                except (ValueError, TypeError):
-                    student_data[field] = 0  # Default value if conversion fails
+        # Feature importance data
+        feature_importance = [
+            {'feature': 'Previous Grades', 'importance': 0.20},
+            {'feature': 'Study Hours', 'importance': 0.15},
+            {'feature': 'Attendance', 'importance': 0.15},
+            {'feature': 'Assignment Timeliness', 'importance': 0.10},
+            {'feature': 'Peer Group Quality', 'importance': 0.07},
+            {'feature': 'Study Environment', 'importance': 0.05},
+            {'feature': 'Home Support', 'importance': 0.05},
+            {'feature': 'Sleep Duration', 'importance': 0.05},
+            {'feature': 'Participation', 'importance': 0.05},
+            {'feature': 'Physical Activity', 'importance': 0.03},
+            {'feature': 'Socio-economic Status', 'importance': 0.02},
+            {'feature': 'Parents Education', 'importance': 0.02}
+        ]
         
-        # Get prediction
-        prediction_result = make_prediction(student_data)
+        # Study hours impact data (simulated relationship)
+        study_hours_impact = [
+            {'hours': 2, 'performance': 50},
+            {'hours': 3, 'performance': 60},
+            {'hours': 4, 'performance': 68},
+            {'hours': 5, 'performance': 75},
+            {'hours': 6, 'performance': 82},
+            {'hours': 7, 'performance': 87},
+            {'hours': 8, 'performance': 91},
+            {'hours': 9, 'performance': 94},
+            {'hours': 10, 'performance': 96}
+        ]
         
-        # Convert any non-string values back to strings for the template
-        for key, value in student_data.items():
-            if not isinstance(value, str):
-                student_data[key] = str(value)
-    
-    # GET request or after POST processing
-    return render_template('predict.html', prediction=prediction_result, student_data=student_data)
+        # Generate personalized suggestions
+        suggestions = []
+        if data['study_hours'] < 6:
+            suggestions.append("Maintain your current study routine of 6 hours daily")
+        if data['attendance'] >= 85:
+            suggestions.append("Continue your excellent attendance record to stay on top of course material")
+        if data['sleep_duration'] < 7:
+            suggestions.append("Consider increasing sleep duration to 7-8 hours for optimal cognitive performance")
+        suggestions.extend([
+            "Develop a structured study plan with specific goals for each session",
+            "Use the Pomodoro technique (25-minute focused sessions followed by 5-minute breaks)",
+            "Practice retrieval-based studying rather than passive re-reading",
+            "Create concept maps to visualize connections between different topics",
+            "Teach concepts to others to solidify your understanding"
+        ])
+        
+        return jsonify({
+            'success': True,
+            'prediction': result['prediction'],
+            'category': category,
+            'factors': factors,
+            'suggestions': suggestions,
+            'featureImportance': feature_importance,
+            'studyHoursImpact': study_hours_impact
+        })
+        
+    except Exception as e:
+        print(f"Error making prediction: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 @app.route('/about')
 def about():
@@ -252,58 +342,41 @@ def delete_student(student_index):
 
 @app.route('/api/students', methods=['POST'])
 def add_student_api():
-    student_data = request.json
-    
-    # If performance is not provided, calculate it
-    if 'performance' not in student_data:
-        prediction_result = make_prediction(student_data)
-        student_data['performance'] = prediction_result['prediction']
-    
-    students.append(student_data)
-    save_data()  # Save changes to file
-    return jsonify({"message": "Student added successfully", "student": student_data}), 201
-
-@app.route('/api/predict', methods=['GET', 'POST'])
-def predict():
-    if request.method == 'GET':
-        # For GET requests, return empty response with example structure
-        return jsonify({
-            "prediction": 0,
-            "performance_category": "Example",
-            "suggestions": ["This is an example API. Please use POST method with student data."],
-            "feature_importance": {
-                "study_hours": 0.3,
-                "attendance": 0.25,
-                "previous_grades": 0.2
-            }
-        })
-    
-    # For POST requests
-    if request.is_json:
-        # JSON data from fetch API
-        student_data = request.json
-    else:
-        # Form data
-        student_data = request.form.to_dict()
-        
-        # Convert numeric values to float
-        for key in ['study_hours', 'attendance', 'previous_grades', 'participation_score']:
-            if key in student_data and student_data[key]:
-                try:
-                    student_data[key] = float(student_data[key])
-                except ValueError:
-                    pass  # Keep as string if conversion fails
-    
-    # Get prediction
     try:
-        prediction_result = make_prediction(student_data)
-        return jsonify(prediction_result)
-    except Exception as e:
-        print(f"Error making prediction: {e}")
+        student_data = request.json
+        
+        # Convert numeric fields
+        numeric_fields = ['study_hours', 'attendance', 'previous_grades', 'participation_score', 'sleep_duration', 'stress_level', 'physical_activity']
+        for field in numeric_fields:
+            if field in student_data:
+                try:
+                    student_data[field] = float(student_data[field])
+                except (ValueError, TypeError):
+                    student_data[field] = 0
+        
+        # If performance is not provided, calculate it
+        if 'performance' not in student_data:
+            prediction_result = make_prediction(student_data)
+            student_data['performance'] = prediction_result['prediction']
+        
+        # Add student to the list
+        students.append(student_data)
+        
+        # Save changes to file
+        save_data()
+        
+        print(f"Added new student: {student_data['name']}")  # Debug log
+        
         return jsonify({
-            "error": "Failed to make prediction",
-            "message": str(e)
-        }), 400
+            "message": "Student added successfully",
+            "student": student_data
+        }), 201
+        
+    except Exception as e:
+        print(f"Error adding student: {str(e)}")  # Debug log
+        return jsonify({
+            "error": f"Failed to add student: {str(e)}"
+        }), 500
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
@@ -564,152 +637,49 @@ def resume_analysis():
 @app.route('/analyze_resume', methods=['POST'])
 def analyze_resume_api():
     if 'resume' not in request.files:
-        return jsonify({
-            'success': False,
-            'error': 'No file provided'
-        })
+        return jsonify({'success': False, 'error': 'No file uploaded'})
     
     file = request.files['resume']
     if file.filename == '':
-        return jsonify({
-            'success': False,
-            'error': 'No file selected'
-        })
+        return jsonify({'success': False, 'error': 'No file selected'})
     
-    if file and allowed_file(file.filename):
+    if not allowed_file(file.filename):
+        return jsonify({'success': False, 'error': 'Invalid file type'})
+    
+    try:
+        # Save file temporarily
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
         
-        try:
-            # Extract text based on file type
-            if filename.endswith('.pdf'):
-                text = extract_text_from_pdf(file_path)
-            else:  # docx
-                text = extract_text_from_docx(file_path)
-            
-            # Analyze the resume text
-            analysis_result = {
-                'success': True,
-                'skills': {
-                    'technical': extract_technical_skills(text),
-                    'soft': extract_soft_skills(text)
-                },
-                'education': extract_education(text),
-                'experience': extract_experience(text),
-                'recommendations': generate_recommendations(text)
-            }
-            
-            # Clean up the uploaded file
-            os.remove(file_path)
-            
-            return jsonify(analysis_result)
-            
-        except Exception as e:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            return jsonify({
-                'success': False,
-                'error': str(e)
-            })
-    
-    return jsonify({
-        'success': False,
-        'error': 'Invalid file type'
-    })
-
-def extract_technical_skills(text):
-    technical_skills = [
-        'Python', 'Java', 'JavaScript', 'C++', 'SQL',
-        'Machine Learning', 'Data Analysis', 'Web Development',
-        'React', 'Node.js', 'Docker', 'AWS', 'Git'
-    ]
-    found_skills = []
-    for skill in technical_skills:
-        if skill.lower() in text.lower():
-            found_skills.append(skill)
-    return found_skills
-
-def extract_soft_skills(text):
-    soft_skills = [
-        'Communication', 'Leadership', 'Problem Solving',
-        'Team Work', 'Time Management', 'Project Management',
-        'Critical Thinking', 'Adaptability', 'Creativity'
-    ]
-    found_skills = []
-    for skill in soft_skills:
-        if skill.lower() in text.lower():
-            found_skills.append(skill)
-    return found_skills
-
-def extract_education(text):
-    # Simple education extraction (can be enhanced with regex)
-    education = []
-    degrees = ['Bachelor', 'Master', 'PhD', 'BSc', 'MSc', 'MBA']
-    lines = text.split('\n')
-    
-    for line in lines:
-        for degree in degrees:
-            if degree.lower() in line.lower():
-                education.append({
-                    'degree': line.strip(),
-                    'institution': 'Institution',  # This could be enhanced with better parsing
-                    'year': 'Year'  # This could be enhanced with better parsing
-                })
-                break
-    
-    return education
-
-def extract_experience(text):
-    # Simple experience extraction (can be enhanced with regex)
-    experience = []
-    keywords = ['experience', 'work', 'position', 'job']
-    lines = text.split('\n')
-    
-    current_exp = None
-    for line in lines:
-        if any(keyword in line.lower() for keyword in keywords):
-            if current_exp:
-                experience.append(current_exp)
-            current_exp = {
-                'position': line.strip(),
-                'company': 'Company',  # This could be enhanced with better parsing
-                'duration': 'Duration',  # This could be enhanced with better parsing
-                'description': 'Description'  # This could be enhanced with better parsing
-            }
-    
-    if current_exp:
-        experience.append(current_exp)
-    
-    return experience
-
-def generate_recommendations(text):
-    recommendations = []
-    
-    # Check for technical skills
-    if len(extract_technical_skills(text)) < 5:
-        recommendations.append("Consider adding more technical skills to your resume")
-    
-    # Check for soft skills
-    if len(extract_soft_skills(text)) < 3:
-        recommendations.append("Include more soft skills to show your interpersonal abilities")
-    
-    # Check for education
-    if len(extract_education(text)) == 0:
-        recommendations.append("Add your educational background with degrees and institutions")
-    
-    # Check for experience
-    if len(extract_experience(text)) == 0:
-        recommendations.append("Include your work experience with detailed responsibilities")
-    
-    # General recommendations
-    recommendations.extend([
-        "Use action verbs to describe your achievements",
-        "Quantify your achievements with numbers and metrics",
-        "Ensure your resume is properly formatted and easy to read"
-    ])
-    
-    return recommendations
+        # Extract text based on file type
+        if filename.endswith('.pdf'):
+            text = extract_text_from_pdf(filepath)
+        else:
+            text = extract_text_from_docx(filepath)
+        
+        # Analyze the resume
+        analysis_result = analyze_resume(text)
+        
+        # Clean up the temporary file
+        os.remove(filepath)
+        
+        return jsonify({
+            'success': True,
+            'ats_score': analysis_result['score'],
+            'ats_verdict': get_performance_category(analysis_result['score']),
+            'ats_summary': analysis_result['recommendations'][0] if analysis_result['recommendations'] else 'No summary available',
+            'technical_skills': analysis_result['skillsScore'] > 70,
+            'soft_skills': analysis_result['skillsScore'] > 70,
+            'education': analysis_result['contentScore'] > 70,
+            'experience': analysis_result['formatScore'] > 70,
+            'skills_match_percentage': analysis_result['skillsScore'] > 70,
+            'recommendations': analysis_result['recommendations']
+        })
+        
+    except Exception as e:
+        print(f"Error analyzing resume: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/student_data')
 def student_data():
