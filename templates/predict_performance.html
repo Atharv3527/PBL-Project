@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Prediction{% endblock %}
+
+{% block extra_css %}
+<style>
+    // ... existing styles ...
+
+    .recommendations-section {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(26, 117, 255, 0.1);
+    }
+
+    .recommendations-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #1a237e;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .recommendation-card {
+        background: rgba(248, 249, 250, 0.9);
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #1a75ff;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .recommendation-card:hover {
+        transform: translateX(5px);
+        background: rgba(227, 242, 253, 0.9);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .recommendation-icon {
+        font-size: 1.5rem;
+        color: #1a75ff;
+        margin-bottom: 1rem;
+    }
+
+    .recommendation-title {
+        font-weight: 600;
+        color: #1a237e;
+        margin-bottom: 0.5rem;
+    }
+
+    .recommendation-description {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+        .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+// ... existing content ...
+
+<div class="recommendations-section">
+    <h2 class="recommendations-title">Performance Improvement Recommendations</h2>
+    <div class="recommendations-grid">
+        <div class="recommendation-card">
+            <i class="fas fa-clock recommendation-icon"></i>
+            <h3 class="recommendation-title">Time Management</h3>
+            <p class="recommendation-description">Implement a structured study schedule with dedicated time slots for each subject. Use time-tracking tools to monitor study hours effectively.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-book recommendation-icon"></i>
+            <h3 class="recommendation-title">Study Techniques</h3>
+            <p class="recommendation-description">Adopt active learning methods like spaced repetition and practice testing. Create comprehensive study notes and mind maps.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-users recommendation-icon"></i>
+            <h3 class="recommendation-title">Group Study</h3>
+            <p class="recommendation-description">Participate in study groups to enhance understanding through peer discussion and knowledge sharing.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-heart recommendation-icon"></i>
+            <h3 class="recommendation-title">Health & Wellness</h3>
+            <p class="recommendation-description">Maintain a balanced diet, regular exercise, and adequate sleep to optimize cognitive performance.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-chart-line recommendation-icon"></i>
+            <h3 class="recommendation-title">Progress Tracking</h3>
+            <p class="recommendation-description">Regularly assess your progress and adjust study strategies accordingly. Set specific, measurable goals.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-hand-paper recommendation-icon"></i>
+            <h3 class="recommendation-title">Distraction Management</h3>
+            <p class="recommendation-description">Create a distraction-free study environment. Use apps to block social media during study sessions.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-question-circle recommendation-icon"></i>
+            <h3 class="recommendation-title">Seek Help</h3>
+            <p class="recommendation-description">Don't hesitate to ask teachers or peers for clarification on difficult topics. Utilize available academic resources.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-brain recommendation-icon"></i>
+            <h3 class="recommendation-title">Mindset</h3>
+            <p class="recommendation-description">Develop a growth mindset. View challenges as opportunities for learning and improvement.</p>
+        </div>
+        <div class="recommendation-card">
+            <i class="fas fa-tasks recommendation-icon"></i>
+            <h3 class="recommendation-title">Organization</h3>
+            <p class="recommendation-description">Keep study materials and notes well-organized. Use digital tools to manage assignments and deadlines.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Predict Performance - Student Performance Predictor{% endblock %}
+{% block title %}Predict Performance{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -230,137 +230,238 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    .section {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+
+    .section h4 {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-primary {
+        padding: 10px 30px;
+        font-weight: 500;
+    }
+
+    .section-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        margin: 1.5rem -2rem;
+        border-left: 4px solid #1a75ff;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="main-heading">
-        <h2>Predict Student Performance</h2>
-    </div>
+<div class="main-heading">
+    <h2>Student Performance Prediction</h2>
+    <p class="text-muted">Enter student details to predict academic performance</p>
+</div>
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Predict Student Performance</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="predictionForm">
-                            <div class="mb-3">
-                                <label for="student_name" class="form-label">Student Name</label>
-                                <input type="text" class="form-control" id="student_name" name="student_name" required>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="study_hours" class="form-label">Study Hours per Week</label>
-                                    <input type="number" class="form-control" id="study_hours" name="study_hours" min="0" max="168" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="attendance" class="form-label">Attendance (%)</label>
-                                    <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="previous_grades" class="form-label">Previous Grades Average</label>
-                                    <input type="number" class="form-control" id="previous_grades" name="previous_grades" min="0" max="100" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="participation_score" class="form-label">Participation Score</label>
-                                    <input type="number" class="form-control" id="participation_score" name="participation_score" min="0" max="100" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="socio_economic_status" class="form-label">Socio-economic Status</label>
-                                    <select class="form-select" id="socio_economic_status" name="socio_economic_status" required>
-                                        <option value="">Select status</option>
-                                        <option value="low">Low</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="high">High</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="extracurricular_activities" class="form-label">Extracurricular Activities</label>
-                                    <select class="form-select" id="extracurricular_activities" name="extracurricular_activities" required>
-                                        <option value="">Select participation</option>
-                                        <option value="none">None</option>
-                                        <option value="moderate">Moderate</option>
-                                        <option value="high">High</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="learning_style" class="form-label">Learning Style</label>
-                                    <select class="form-select" id="learning_style" name="learning_style" required>
-                                        <option value="">Select style</option>
-                                        <option value="visual">Visual</option>
-                                        <option value="auditory">Auditory</option>
-                                        <option value="kinesthetic">Kinesthetic</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="gender" class="form-label">Gender</label>
-                                    <select class="form-select" id="gender" name="gender" required>
-                                        <option value="">Select gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="parents_education" class="form-label">Parents' Education Level</label>
-                                <select class="form-select" id="parents_education" name="parents_education" required>
-                                    <option value="">Select education level</option>
-                                    <option value="high_school">High School</option>
-                                    <option value="bachelors">Bachelor's Degree</option>
-                                    <option value="masters">Master's Degree</option>
-                                    <option value="phd">PhD</option>
-                                </select>
-                            </div>
-
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Predict Performance</button>
-                            </div>
-                        </form>
-
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <p>Analyzing student data...</p>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line me-2"></i>Performance Prediction Form</h5>
+                </div>
+                <div class="card-body">
+                    <form id="predictionForm" method="POST">
+                        <!-- Academic Metrics -->
+                        <div class="section-header">
+                            <i class="fas fa-book me-2"></i>Academic Metrics
                         </div>
-
-                        <div class="prediction-card mt-4">
-                            <div class="prediction-score">
-                                <span id="predictionScore">85</span>%
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Study Hours/Day</label>
+                                    <input type="number" class="form-control" name="study_hours" min="0" max="24" step="0.5" required
+                                           value="{{ student_data.study_hours if student_data }}">
+                                </div>
                             </div>
-                            <div class="prediction-category" id="predictionCategory">
-                                High Performer
-                            </div>
-                            
-                            <h6 class="mb-3">Top Influencing Factors:</h6>
-                            <ul class="factors-list" id="factorsList">
-                                <!-- Factors will be dynamically added here -->
-                            </ul>
-
-                            <div class="suggestions">
-                                <h6>Suggestions for Improvement</h6>
-                                <div id="suggestionsList">
-                                    <!-- Suggestions will be dynamically added here -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Study Environment</label>
+                                    <select class="form-select" name="study_environment" required>
+                                        <option value="">Select Environment</option>
+                                        <option value="Quiet" {% if student_data and student_data.study_environment == 'Quiet' %}selected{% endif %}>Quiet</option>
+                                        <option value="Moderate" {% if student_data and student_data.study_environment == 'Moderate' %}selected{% endif %}>Moderate</option>
+                                        <option value="Noisy" {% if student_data and student_data.study_environment == 'Noisy' %}selected{% endif %}>Noisy</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Attendance (%)</label>
+                                    <input type="number" class="form-control" name="attendance" min="0" max="100" required
+                                           value="{{ student_data.attendance if student_data }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Previous Grades</label>
+                                    <input type="number" class="form-control" name="previous_grades" min="0" max="100" required
+                                           value="{{ student_data.previous_grades if student_data }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Participation Score (0-10)</label>
+                                    <input type="number" class="form-control" name="participation_score" min="0" max="10" required
+                                           value="{{ student_data.participation_score if student_data }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Assignment Submission Timeliness</label>
+                                    <select class="form-select" name="assignment_timeliness" required>
+                                        <option value="">Select Timeliness</option>
+                                        <option value="always_on_time" {% if student_data and student_data.assignment_timeliness == 'always_on_time' %}selected{% endif %}>Always on Time</option>
+                                        <option value="sometimes_late" {% if student_data and student_data.assignment_timeliness == 'sometimes_late' %}selected{% endif %}>Sometimes Late</option>
+                                        <option value="often_late" {% if student_data and student_data.assignment_timeliness == 'often_late' %}selected{% endif %}>Often Late</option>
+                                        <option value="never" {% if student_data and student_data.assignment_timeliness == 'never' %}selected{% endif %}>Never</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parental Involvement -->
+                        <div class="section-header">
+                            <i class="fas fa-users me-2"></i>Parental Involvement
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Parent-Teacher Meeting Frequency</label>
+                                    <select class="form-select" name="parent_meeting_freq" required>
+                                        <option value="">Select Frequency</option>
+                                        <option value="Frequently" {% if student_data and student_data.parent_meeting_freq == 'Frequently' %}selected{% endif %}>Frequently</option>
+                                        <option value="Sometimes" {% if student_data and student_data.parent_meeting_freq == 'Sometimes' %}selected{% endif %}>Sometimes</option>
+                                        <option value="Rarely" {% if student_data and student_data.parent_meeting_freq == 'Rarely' %}selected{% endif %}>Rarely</option>
+                                        <option value="Never" {% if student_data and student_data.parent_meeting_freq == 'Never' %}selected{% endif %}>Never</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Home Support for Learning</label>
+                                    <select class="form-select" name="home_support" required>
+                                        <option value="">Select Support Level</option>
+                                        <option value="High" {% if student_data and student_data.home_support == 'High' %}selected{% endif %}>High</option>
+                                        <option value="Moderate" {% if student_data and student_data.home_support == 'Moderate' %}selected{% endif %}>Moderate</option>
+                                        <option value="Low" {% if student_data and student_data.home_support == 'Low' %}selected{% endif %}>Low</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Psychological & Lifestyle Factors -->
+                        <div class="section-header">
+                            <i class="fas fa-brain me-2"></i>Psychological & Lifestyle Factors
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Sleep Duration (hours/day)</label>
+                                    <input type="number" class="form-control" name="sleep_duration" min="0" max="24" step="0.5" required
+                                           value="{{ student_data.sleep_duration if student_data }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Stress Level (0-10)</label>
+                                    <input type="number" class="form-control" name="stress_level" min="0" max="10" required
+                                           value="{{ student_data.stress_level if student_data }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label">Physical Activity (hours/week)</label>
+                                    <input type="number" class="form-control" name="physical_activity" min="0" max="168" step="0.5" required
+                                           value="{{ student_data.physical_activity if student_data }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Peer Influence and Socio-economic Factors -->
+                        <div class="section-header">
+                            <i class="fas fa-user-friends me-2"></i>Peer Influence and Socio-economic Factors
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Peer Group Academic Quality</label>
+                                    <select class="form-select" name="peer_academic_quality" required>
+                                        <option value="">Select Quality</option>
+                                        <option value="Excellent" {% if student_data and student_data.peer_academic_quality == 'Excellent' %}selected{% endif %}>Excellent</option>
+                                        <option value="Good" {% if student_data and student_data.peer_academic_quality == 'Good' %}selected{% endif %}>Good</option>
+                                        <option value="Average" {% if student_data and student_data.peer_academic_quality == 'Average' %}selected{% endif %}>Average</option>
+                                        <option value="Poor" {% if student_data and student_data.peer_academic_quality == 'Poor' %}selected{% endif %}>Poor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Socio-economic Status</label>
+                                    <select class="form-select" name="socio_economic_status" required>
+                                        <option value="">Select Status</option>
+                                        <option value="High" {% if student_data and student_data.socio_economic_status == 'High' %}selected{% endif %}>High</option>
+                                        <option value="Middle" {% if student_data and student_data.socio_economic_status == 'Middle' %}selected{% endif %}>Middle</option>
+                                        <option value="Low" {% if student_data and student_data.socio_economic_status == 'Low' %}selected{% endif %}>Low</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calculator me-2"></i>Predict Performance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if prediction %}
+            <div class="card prediction-card" style="display: block;">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Prediction Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="prediction-score">{{ prediction.prediction }}%</div>
+                    <div class="suggestions">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Suggestions for Improvement</h6>
+                        <ul class="list-unstyled">
+                            {% for suggestion in prediction.suggestions %}
+                            <li class="suggestion-item">{{ suggestion }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -370,88 +471,22 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('predictionForm');
-    const loadingDiv = document.querySelector('.loading');
-    const predictionCard = document.querySelector('.prediction-card');
-    const factorsList = document.getElementById('factorsList');
-    const suggestionsList = document.getElementById('suggestionsList');
-
-    form.addEventListener('submit', async function(e) {
+    
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        // Show loading animation
-        form.style.display = 'none';
-        loadingDiv.style.display = 'block';
-        predictionCard.style.display = 'none';
-
-        // Collect form data
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        try {
-            const response = await fetch('/predict', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            // Update prediction results
-            document.getElementById('predictionScore').textContent = result.score;
-            document.getElementById('predictionCategory').textContent = result.category;
-
-            // Clear previous factors
-            factorsList.innerHTML = '';
-            
-            // Add new factors
-            result.factors.forEach(factor => {
-                const li = document.createElement('li');
-                li.className = 'factor-item';
-                li.innerHTML = `
-                    <div class="factor-icon">📊</div>
-                    <div>
-                        <strong>${factor.name}</strong>
-                        <div class="text-muted">${factor.impact}</div>
-                    </div>
-                `;
-                factorsList.appendChild(li);
-            });
-
-            // Clear previous suggestions
-            suggestionsList.innerHTML = '';
-            
-            // Add new suggestions
-            result.suggestions.forEach(suggestion => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.textContent = suggestion;
-                suggestionsList.appendChild(div);
-            });
-
-            // Hide loading and show results
-            loadingDiv.style.display = 'none';
-            predictionCard.style.display = 'block';
-        } catch (error) {
+        
+        fetch('/predict', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            location.reload();
+        })
+        .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while processing your request. Please try again.');
-            
-            // Reset form view
-            loadingDiv.style.display = 'none';
-            form.style.display = 'block';
-        }
-    });
-
-    // Form validation and animation
-    const inputs = form.querySelectorAll('input, select');
-    inputs.forEach(input => {
-        input.addEventListener('change', function() {
-            if (this.checkValidity()) {
-                this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
-            }
+            alert('Error making prediction');
         });
     });
 });

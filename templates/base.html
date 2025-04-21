@@ -288,6 +288,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/student_data' %}active{% endif %}" 
+                           href="{{ url_for('student_data') }}"
+                           {% if request.path == '/student_data' %}style="background-color: #e53935 !important;"{% endif %}>
+                            <i class="fas fa-table me-1"></i>Student Data
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/resume_analysis' %}active{% endif %}" 
                            href="{{ url_for('resume_analysis') }}"
                            {% if request.path == '/resume_analysis' %}style="background-color: #e53935 !important;"{% endif %}>

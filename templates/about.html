@@ -1,547 +1,291 @@
 {% extends "base.html" %}
 
-{% block title %}About - Student Performance Predictor{% endblock %}
+{% block title %}About Us{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Modern gradient background */
     body {
-        background: linear-gradient(135deg, #e8f5fe 0%, #d0e8fd 50%, #c2e0ff 100%);
+        background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
         min-height: 100vh;
-        position: relative;
+        color: #ffffff;
     }
-    
-    body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: url('https://images.unsplash.com/photo-1544298621-24cf0887d84d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') center/cover no-repeat;
-        opacity: 0.04;
-        z-index: -1;
+
+    /* Main content container */
+    .about-container {
+        padding: 3rem 1rem;
     }
-    
-    .container {
-        position: relative;
-        z-index: 1;
-    }
-    
-    .about-header {
-        background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-        color: white;
-        padding: 4rem 0;
-        margin-bottom: 3rem;
+
+    /* Hero section with gradient overlay */
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                    url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&q=80');
+        background-size: cover;
+        background-position: center;
+        padding: 4rem 2rem;
+        text-align: center;
         border-radius: 15px;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-        position: relative;
-        overflow: hidden;
-        animation: gradientShift 10s ease infinite;
+        margin-bottom: 3rem;
+        border: 2px solid #e53935;
     }
-    
-    @keyframes gradientShift {
-        0% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0% 50%;
-        }
+
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #ffffff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
-    
-    .about-header::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('https://images.unsplash.com/photo-1501290741922-b56c0d0884af?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') center/cover no-repeat;
-        opacity: 0.2;
-        z-index: 0;
-    }
-    
-    .about-header h1 {
-        font-size: 3rem;
-        font-weight: 700;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        margin-bottom: 1.5rem;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .about-header p {
+
+    .hero-subtitle {
         font-size: 1.2rem;
+        color: #e0e0e0;
         max-width: 800px;
         margin: 0 auto;
-        position: relative;
-        z-index: 1;
     }
-    
+
+    /* Section styling */
+    .section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #e53935;
+    }
+
     .section-title {
-        font-family: 'Times New Roman', Times, serif;
-        font-weight: 700;
-        color: #1a237e;
+        color: #e53935;
+        font-size: 1.8rem;
         margin-bottom: 1.5rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e91e63;
-        display: inline-block;
+        border-bottom: 2px solid rgba(229, 57, 53, 0.3);
     }
-    
-    .feature-card {
-        border: none;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.9);
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        height: 100%;
-        overflow: hidden;
-        backdrop-filter: blur(5px);
+
+    /* Technology cards */
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
     }
-    
-    .feature-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
-    }
-    
-    .feature-card .card-header {
-        background: linear-gradient(45deg, #3949ab 0%, #5c6bc0 100%);
-        color: white;
-        border: none;
-        padding: 1.2rem;
-    }
-    
-    .feature-card .card-body {
-        padding: 1.5rem;
-    }
-    
-    .feature-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        color: #3949ab;
-    }
-    
-    .quote-box {
-        background: rgba(245, 245, 245, 0.85);
-        border-left: 5px solid #3949ab;
-        padding: 2rem;
-        margin: 2rem 0;
-        border-radius: 5px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        font-style: italic;
-        backdrop-filter: blur(5px);
-    }
-    
-    .team-section {
-        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-        padding: 3rem;
-        border-radius: 10px;
-        margin-top: 3rem;
-    }
-    
-    .scroll-reveal {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease;
-    }
-    
-    .scroll-reveal.active {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .stat-circle {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #3949ab, #5c6bc0);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-    
-    .stat-label {
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
+
     .tech-card {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 10px;
         padding: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        margin-bottom: 1.5rem;
-        border-left: 5px solid #3949ab;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(229, 57, 53, 0.2);
     }
-    
+
     .tech-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-        border-left-width: 8px;
+        background: rgba(229, 57, 53, 0.1);
     }
-    
+
     .tech-icon {
         font-size: 2rem;
-        color: #3949ab;
+        color: #e53935;
         margin-bottom: 1rem;
     }
-    
-    .tech-list {
-        list-style-type: none;
-        padding-left: 0;
+
+    .tech-title {
+        color: #ffffff;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
     }
-    
-    .tech-list li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f0f0f0;
+
+    .tech-description {
+        color: #e0e0e0;
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
-    
-    .tech-list li:last-child {
-        border-bottom: none;
+
+    /* Feature list */
+    .feature-list {
+        list-style: none;
+        padding: 0;
     }
-    
-    .tech-list li i {
-        color: #3949ab;
-        margin-right: 0.5rem;
+
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(229, 57, 53, 0.2);
     }
-    
-    .card {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(5px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+
+    .feature-icon {
+        color: #e53935;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        flex-shrink: 0;
     }
-    
-    /* Add subtle floating animation for the cards */
-    @keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-        50% {
-            transform: translateY(-5px);
-        }
-        100% {
-            transform: translateY(0px);
-        }
+
+    .feature-content h3 {
+        color: #ffffff;
+        margin-bottom: 0.5rem;
     }
-    
-    .scroll-reveal.active .feature-card,
-    .scroll-reveal.active .tech-card {
-        animation: float 5s ease-in-out infinite;
-        animation-delay: calc(var(--card-index, 0) * 0.2s);
+
+    .feature-content p {
+        color: #e0e0e0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Header -->
-<div class="about-header text-center">
-    <div class="container">
-        <h1>Student Performance Predictor</h1>
-        <p class="lead">An advanced analytical system empowering educators with data-driven insights to help every student achieve their full potential</p>
+<div class="container about-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">Student Performance Predictor</h1>
+        <p class="hero-subtitle">An intelligent academic support system leveraging machine learning to predict and improve student outcomes through data-driven insights</p>
     </div>
-</div>
 
-<div class="container">
     <!-- Project Overview Section -->
-    <div class="row mb-5 scroll-reveal">
-        <div class="col-md-10 mx-auto">
-            <h2 class="section-title"><i class="fas fa-info-circle me-2"></i>Project Overview</h2>
-            <p class="lead">
-                The Student Performance Predictor is a sophisticated analytical platform designed to 
-                revolutionize how educational institutions approach student success.
-            </p>
-            <p>
-                This project aims to develop a predictive model that estimates the academic performance of students by analyzing various influencing factors. 
-                These factors include study habits (e.g., study time per week), attendance records, prior academic achievements, participation in class activities, 
-                socio-economic background, and other relevant metrics. By identifying patterns in student behavior and performance data, the model provides 
-                actionable insights to educators and institutions, enabling them to take proactive academic interventions to improve student outcomes.
-            </p>
-            
-            <div class="quote-box">
-                "Education is not the filling of a pail, but the lighting of a fire." — W.B. Yeats
+    <div class="section">
+        <h2 class="section-title">Project Overview</h2>
+        <p>Our system employs advanced machine learning algorithms to analyze various factors affecting student performance, including study habits, attendance, prior achievements, and socio-economic background. By identifying patterns in student data, we provide actionable insights enabling educators to implement targeted interventions for improved academic outcomes.</p>
+    </div>
+
+    <!-- Technologies Section -->
+    <div class="section">
+        <h2 class="section-title">Technologies & Framework</h2>
+        <div class="tech-grid">
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fab fa-python"></i>
+                </div>
+                <h3 class="tech-title">Backend Stack</h3>
+                <p class="tech-description">
+                    - Python 3.8+<br>
+                    - Flask Framework<br>
+                    - SQLite Database<br>
+                    - RESTful API Architecture
+                </p>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3 class="tech-title">Machine Learning</h3>
+                <p class="tech-description">
+                    - Scikit-learn<br>
+                    - Pandas & NumPy<br>
+                    - Feature Engineering<br>
+                    - Model Evaluation Tools
+                </p>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+                <h3 class="tech-title">Frontend Stack</h3>
+                <p class="tech-description">
+                    - HTML5 & CSS3<br>
+                    - JavaScript (ES6+)<br>
+                    - Bootstrap 5<br>
+                    - Chart.js for Visualization
+                </p>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="tech-title">Data Processing</h3>
+                <p class="tech-description">
+                    - Data Preprocessing<br>
+                    - Feature Selection<br>
+                    - Statistical Analysis<br>
+                    - Data Visualization
+                </p>
             </div>
         </div>
     </div>
-    
+
+    <!-- Algorithms Section -->
+    <div class="section">
+        <h2 class="section-title">Machine Learning Algorithms</h2>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Random Forest Classifier</h3>
+                    <p>Ensemble learning method combining multiple decision trees for robust performance prediction and reduced overfitting.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Linear Regression</h3>
+                    <p>Fundamental algorithm for establishing relationships between various factors and student performance metrics.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-vector-square"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Support Vector Machines</h3>
+                    <p>Advanced classification algorithm for handling complex patterns in student performance data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Key Features Section -->
-    <div class="row mb-5 scroll-reveal">
-        <div class="col-md-10 mx-auto">
-            <h2 class="section-title"><i class="fas fa-chart-pie me-2"></i>Key Features</h2>
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="feature-card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-chart-line me-2"></i>Performance Prediction</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="feature-icon text-center">
-                                <i class="fas fa-brain"></i>
-                            </div>
-                            <p>Our advanced machine learning model analyzes multiple factors to predict student performance with high accuracy, allowing educators to identify at-risk students before they fall behind.</p>
-                        </div>
-                    </div>
+    <div class="section">
+        <h2 class="section-title">Key Features</h2>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-tachometer-alt"></i>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <div class="feature-card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-lightbulb me-2"></i>Personalized Recommendations</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="feature-icon text-center">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <p>Based on individual student profiles, our system generates tailored recommendations to help improve academic performance, providing practical steps for success.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="feature-card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-database me-2"></i>Data Visualization</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="feature-icon text-center">
-                                <i class="fas fa-chart-bar"></i>
-                            </div>
-                            <p>Interactive graphs and charts help educators easily interpret data trends and model outcomes using advanced visualization libraries like Matplotlib and Seaborn.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="feature-card">
-                        <div class="card-header">
-                            <h4><i class="fas fa-file-alt me-2"></i>Resume Analysis</h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="feature-icon text-center">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <p>Our innovative resume analysis tool evaluates student resumes to identify strengths, weaknesses, and opportunities for improvement in their professional development.</p>
-                        </div>
-                    </div>
+                <div class="feature-content">
+                    <h3>ATS Score Analyzer</h3>
+                    <p>Advanced resume analysis with dynamic speedometer visualization showing ATS compatibility score, helping students optimize their resumes for automated tracking systems.</p>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Technologies Used Section -->
-    <div class="row mb-5 scroll-reveal">
-        <div class="col-md-10 mx-auto">
-            <h2 class="section-title"><i class="fas fa-laptop-code me-2"></i>Technologies Used</h2>
-            <p>Our system is built using cutting-edge technologies across various layers:</p>
-            
-            <div class="row mt-4">
-                <div class="col-md-6 mb-4">
-                    <div class="tech-card">
-                        <div class="tech-icon">
-                            <i class="fas fa-desktop"></i>
-                        </div>
-                        <h4>Frontend</h4>
-                        <ul class="tech-list">
-                            <li><i class="fas fa-check-circle"></i> HTML5, CSS3, JavaScript</li>
-                            <li><i class="fas fa-check-circle"></i> Bootstrap 5 for responsive design</li>
-                            <li><i class="fas fa-check-circle"></i> Chart.js for interactive visualizations</li>
-                            <li><i class="fas fa-check-circle"></i> Font Awesome for icons and UI elements</li>
-                        </ul>
-                    </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
                 </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="tech-card">
-                        <div class="tech-icon">
-                            <i class="fas fa-server"></i>
-                        </div>
-                        <h4>Backend</h4>
-                        <ul class="tech-list">
-                            <li><i class="fas fa-check-circle"></i> Flask - Python web framework</li>
-                            <li><i class="fas fa-check-circle"></i> RESTful API architecture</li>
-                            <li><i class="fas fa-check-circle"></i> Jinja2 templating engine</li>
-                            <li><i class="fas fa-check-circle"></i> Flask-SQLAlchemy for ORM</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="tech-card">
-                        <div class="tech-icon">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <h4>Data Storage</h4>
-                        <ul class="tech-list">
-                            <li><i class="fas fa-check-circle"></i> JSON for data portability</li>
-                            <li><i class="fas fa-check-circle"></i> SQLite for lightweight database needs</li>
-                            <li><i class="fas fa-check-circle"></i> File-based storage for resume uploads</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="tech-card">
-                        <div class="tech-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <h4>Machine Learning</h4>
-                        <ul class="tech-list">
-                            <li><i class="fas fa-check-circle"></i> Scikit-learn for ML algorithms</li>
-                            <li><i class="fas fa-check-circle"></i> Pandas for data manipulation</li>
-                            <li><i class="fas fa-check-circle"></i> NumPy for numerical computations</li>
-                            <li><i class="fas fa-check-circle"></i> Matplotlib & Seaborn for visualization</li>
-                        </ul>
-                    </div>
+                <div class="feature-content">
+                    <h3>Performance Analytics</h3>
+                    <p>Comprehensive analysis of student performance metrics with visual representations and detailed insights.</p>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- How It Works Section -->
-    <div class="row mb-5 scroll-reveal">
-        <div class="col-md-10 mx-auto">
-            <h2 class="section-title"><i class="fas fa-cogs me-2"></i>How It Works</h2>
-            <p>Our prediction model incorporates multiple factors and processes to provide accurate insights:</p>
-            
-            <div class="row mt-4">
-                <div class="col-md-3 text-center mb-4">
-                    <div class="stat-circle">
-                        <div class="stat-value">1</div>
-                        <div class="stat-label">Data Collection</div>
-                    </div>
-                    <h5>Data Preprocessing</h5>
-                    <p>Cleaning and transforming raw student data for accurate predictions</p>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-lightbulb"></i>
                 </div>
-                
-                <div class="col-md-3 text-center mb-4">
-                    <div class="stat-circle">
-                        <div class="stat-value">2</div>
-                        <div class="stat-label">Feature Analysis</div>
-                    </div>
-                    <h5>Feature Selection</h5>
-                    <p>Identifying the most influential factors affecting performance</p>
-                </div>
-                
-                <div class="col-md-3 text-center mb-4">
-                    <div class="stat-circle">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">ML Modeling</div>
-                    </div>
-                    <h5>Predictive Modeling</h5>
-                    <p>Using Random Forest and other algorithms to forecast performance</p>
-                </div>
-                
-                <div class="col-md-3 text-center mb-4">
-                    <div class="stat-circle">
-                        <div class="stat-value">4</div>
-                        <div class="stat-label">Intervention</div>
-                    </div>
-                    <h5>Recommendations</h5>
-                    <p>Suggesting specific actions based on predictive insights</p>
+                <div class="feature-content">
+                    <h3>Smart Recommendations</h3>
+                    <p>AI-powered suggestions for improving academic performance based on individual student data.</p>
                 </div>
             </div>
-            
-            <div class="card mt-5">
-                <div class="card-body">
-                    <h4 class="card-title"><i class="fas fa-bullseye me-2"></i>Evaluation Metrics & Algorithms</h4>
-                    <p>We employ several advanced machine learning algorithms and evaluate their performance using industry-standard metrics:</p>
-                    
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-cog me-2"></i>Algorithms Used</h5>
-                            <ul>
-                                <li><strong>Random Forest:</strong> Our primary algorithm, which combines multiple decision trees to improve prediction accuracy and prevent overfitting</li>
-                                <li><strong>Linear Regression:</strong> Used for baseline predictions and understanding direct correlations between variables</li>
-                                <li><strong>Support Vector Machines (SVM):</strong> Employed for complex pattern recognition in student data</li>
-                                <li><strong>K-Nearest Neighbors (KNN):</strong> Utilized for similarity-based predictions that group students with similar characteristics</li>
-                                <li><strong>Gradient Boosting:</strong> Implemented for incremental improvement of predictions by focusing on previous errors</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-chart-line me-2"></i>Performance Metrics</h5>
-                            <ul>
-                                <li><strong>Mean Absolute Error (MAE):</strong> Measures the average magnitude of errors in predictions, providing a straightforward understanding of prediction accuracy</li>
-                                <li><strong>Root Mean Squared Error (RMSE):</strong> Emphasizes larger errors for more critical evaluation of prediction performance</li>
-                                <li><strong>R² Score:</strong> Indicates the proportion of variance in performance that is predictable from the features used</li>
-                                <li><strong>Precision-Recall Analysis:</strong> Evaluates the trade-off between precision and recall, especially important for identifying at-risk students</li>
-                                <li><strong>Cross-Validation:</strong> Ensures model robustness through k-fold validation techniques</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <h5><i class="fas fa-code-branch me-2"></i>Model Selection Process</h5>
-                        <p>Our system employs a sophisticated model selection process:</p>
-                        <ol>
-                            <li>Initial training of multiple algorithm variants</li>
-                            <li>Hyperparameter tuning using Grid Search and Randomized Search techniques</li>
-                            <li>Model comparison based on cross-validated performance metrics</li>
-                            <li>Ensemble method creation that combines the strengths of multiple algorithms</li>
-                            <li>Continuous model retraining and evaluation with new student data</li>
-                        </ol>
-                    </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Outcome Section -->
-    <div class="row mb-5 scroll-reveal">
-        <div class="col-md-10 mx-auto">
-            <h2 class="section-title"><i class="fas fa-trophy me-2"></i>Outcome</h2>
-            <p class="lead">
-                The final system serves as an intelligent academic support tool that empowers teachers and administrators with data-driven insights. 
-                By predicting students' future performance, institutions can identify at-risk students early, tailor interventions to individual 
-                needs, and foster a more supportive learning environment.
-            </p>
-            
-            <div class="quote-box">
-                "The best way to predict the future is to create it." — Abraham Lincoln
+                <div class="feature-content">
+                    <h3>Real-time Monitoring</h3>
+                    <p>Continuous tracking of student progress with instant updates and notifications.</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Scroll reveal animation
-        const revealElements = document.querySelectorAll('.scroll-reveal');
-        
-        function checkReveal() {
-            revealElements.forEach(element => {
-                const elementTop = element.getBoundingClientRect().top;
-                const windowHeight = window.innerHeight;
-                
-                if (elementTop < windowHeight - 100) {
-                    element.classList.add('active');
-                }
-            });
-        }
-        
-        // Add card index for staggered animations
-        document.querySelectorAll('.feature-card, .tech-card').forEach((card, index) => {
-            card.style.setProperty('--card-index', index % 4);
-        });
-        
-        // Initial check
-        checkReveal();
-        
-        // Check on scroll
-        window.addEventListener('scroll', checkReveal);
-    });
-</script>
 {% endblock %} 

@@ -212,6 +212,167 @@
             margin-bottom: 1rem;
         }
     }
+
+    /* Results Section Styles */
+    .results-container {
+        display: none;
+        margin-top: 2rem;
+        animation: slideDown 0.5s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #EBF5FF 0%, #F0F7FF 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .prediction-score {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #1a75ff;
+        text-align: center;
+        margin: 1rem 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .performance-level {
+        text-align: center;
+        font-size: 1.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .level-high {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .level-moderate {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    .level-low {
+        background: #FFEBEE;
+        color: #C62828;
+    }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .insight-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 2rem 0;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .data-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .data-table tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+
+    .recommendations {
+        background: #E8F5E9;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .recommendation-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .recommendation-item:hover {
+        transform: translateX(5px);
+    }
+
+    .recommendation-icon {
+        width: 32px;
+        height: 32px;
+        background: #2E7D32;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: white;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .download-report {
+        display: flex;
+        justify-content: center;
+        margin: 2rem 0;
+    }
+
+    .download-btn {
+        background: linear-gradient(135deg, #1a75ff, #003399);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 50, 153, 0.3);
+    }
 </style>
 {% endblock %}
 
@@ -226,7 +387,7 @@
             <h5><i class="fas fa-user-plus me-2"></i>Add New Student</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('add_student') }}">
+            <form id="addStudentForm">
                 <!-- Basic Information -->
                 <div class="form-section">
                     <div class="section-header">
@@ -281,6 +442,7 @@
                                 <span class="input-group-text"><i class="fas fa-star"></i></span>
                                 <input type="number" class="form-control" id="previous_grades" name="previous_grades" min="0" max="100" required>
                             </div>
+                            <small class="text-muted">Enter student's previous academic performance (0-100%). This has a significant impact on predictions.</small>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="attendance" class="form-label">Attendance (%)</label>
@@ -298,6 +460,7 @@
                                 <span class="input-group-text"><i class="fas fa-hand-paper"></i></span>
                                 <input type="number" class="form-control" id="participation_score" name="participation_score" min="1" max="10" required>
                             </div>
+                            <small class="text-muted">Rate student's classroom participation from 1 (rarely participates) to 10 (highly engaged). This contributes 15% to the prediction.</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="assignment_timeliness" class="form-label">Assignment Submission Timeliness</label>
@@ -488,7 +651,7 @@
                     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">
                         <i class="fas fa-times me-2"></i>Cancel
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
                         <i class="fas fa-save me-2"></i>Save Student
                     </button>
                 </div>
@@ -496,37 +659,321 @@
         </div>
     </div>
 </div>
+
+<!-- Results Section -->
+<div id="results-container" class="results-container">
+    <div class="summary-card">
+        <h2 class="text-center mb-4 text-2xl font-bold text-gray-800">Performance Prediction Summary</h2>
+        
+        <div class="prediction-score">
+            <span id="predictionScore">85%</span>
+        </div>
+        
+        <div class="performance-level level-moderate">
+            <span id="predictionCategory">Moderate Risk</span>
+        </div>
+        
+        <div class="text-center text-gray-600" id="attendanceImpact">
+            Attendance Impact: Good attendance pattern detected
+        </div>
+    </div>
+
+    <div class="insights-grid">
+        <div class="insight-card">
+            <h3 class="font-semibold mb-3">Performance Metrics</h3>
+            <canvas id="radar-chart"></canvas>
+        </div>
+        
+        <div class="insight-card">
+            <h3 class="font-semibold mb-3">Feature Importance</h3>
+            <canvas id="bar-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h3 class="font-semibold mb-3">Comparative Analysis</h3>
+        <canvas id="comparison-chart"></canvas>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h3 class="font-semibold mb-3">Data Analysis</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Value Provided</th>
+                            <th>Normalized Value</th>
+                            <th>Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analysis-table-body">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="recommendations">
+        <h3 class="font-semibold mb-3">Recommended Actions</h3>
+        <div id="recommendations-list">
+            <!-- Will be populated dynamically -->
+        </div>
+    </div>
+
+    <div class="download-report">
+        <button class="download-btn" onclick="downloadReport()">
+            <i class="fas fa-download"></i>
+            Download Full Report (PDF)
+        </button>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Form validation and animation
-    const form = document.querySelector('form');
-    const inputs = form.querySelectorAll('input, select');
+    const form = document.getElementById('addStudentForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultsSection = document.getElementById('results-container');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Save original button text
+        const originalBtnText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        submitBtn.disabled = true;
+        
+        try {
+            // Gather form data
+            const formData = {
+                name: document.getElementById('name').value,
+                study_hours: parseFloat(document.getElementById('study_hours').value),
+                attendance: parseFloat(document.getElementById('attendance').value),
+                previous_grades: parseFloat(document.getElementById('previous_grades').value),
+                participation_score: parseFloat(document.getElementById('participation_score').value),
+                socio_economic_status: document.getElementById('socio_economic_status').value,
+                assignment_submission_timeliness: document.getElementById('assignment_timeliness').value,
+                extracurricular_activities: document.getElementById('extracurricular').value,
+                learning_style: document.getElementById('learning_style').value,
+                gender: document.getElementById('gender').value,
+                parents_education: document.getElementById('parents_education').value
+            };
 
-    inputs.forEach(input => {
-        input.addEventListener('change', function() {
-            if (this.checkValidity()) {
-                this.classList.add('is-valid');
-                this.classList.remove('is-invalid');
+            // Send data to server
+            const response = await fetch('/add_student', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Student data has been saved successfully.',
+                    showConfirmButton: true,
+                    confirmButtonText: 'View Results',
+                    showCancelButton: true,
+                    cancelButtonText: 'Add Another Student'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Predict performance and show results
+                        predictPerformance(formData);
+                    } else {
+                        // Reset form for new entry
+                        form.reset();
+                        resultsSection.style.display = 'none';
+                    }
+                });
             } else {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
+                throw new Error(result.error || 'Failed to save student data');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An error occurred while saving the data.'
+            });
+        } finally {
+            // Reset button state
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    });
+
+    async function predictPerformance(studentData) {
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(studentData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Show results section
+                resultsSection.style.display = 'block';
+                
+                // Update prediction score and category
+                document.getElementById('predictionScore').textContent = `${result.score}%`;
+                document.getElementById('predictionCategory').textContent = result.category;
+                document.getElementById('attendanceImpact').textContent = result.attendance_impact;
+
+                // Create visualization charts
+                createRadarChart(result.metrics);
+                createBarChart(result.feature_importance);
+                
+                // Update analysis table
+                updateAnalysisTable(result.analysis);
+                
+                // Update recommendations
+                updateRecommendations(result.suggestions);
+
+                // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                throw new Error(result.error || 'Failed to predict performance');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An error occurred while predicting performance.'
+            });
+        }
+    }
+
+    // Chart creation functions
+    function createRadarChart(metrics) {
+        const ctx = document.getElementById('radar-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: Object.keys(metrics),
+                datasets: [{
+                    label: 'Student Profile',
+                    data: Object.values(metrics),
+                    backgroundColor: 'rgba(26, 117, 255, 0.2)',
+                    borderColor: '#1a75ff',
+                    pointBackgroundColor: '#1a75ff'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
             }
         });
-    });
+    }
 
-    // Smooth scroll to sections
-    document.querySelectorAll('.section-header').forEach(header => {
-        header.style.cursor = 'pointer';
-        header.addEventListener('click', () => {
-            header.closest('.form-section').scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'start'
-            });
+    function createBarChart(data) {
+        const ctx = document.getElementById('bar-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.feature),
+                datasets: [{
+                    label: 'Feature Importance',
+                    data: data.map(d => d.importance),
+                    backgroundColor: '#1a75ff'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
         });
-    });
+    }
+
+    function updateAnalysisTable(analysis) {
+        const tableBody = document.getElementById('analysis-table-body');
+        tableBody.innerHTML = '';
+
+        analysis.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.feature}</td>
+                <td>${item.value}</td>
+                <td>${item.normalized}</td>
+                <td><span class="badge bg-${getImpactColor(item.impact)}">${item.impact}</span></td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function getImpactColor(impact) {
+        switch(impact.toLowerCase()) {
+            case 'positive':
+                return 'success';
+            case 'moderate':
+                return 'warning';
+            case 'needs improvement':
+                return 'danger';
+            default:
+                return 'secondary';
+        }
+    }
+
+    function updateRecommendations(recommendations) {
+        const container = document.getElementById('recommendations-list');
+        container.innerHTML = '';
+
+        recommendations.forEach(rec => {
+            const div = document.createElement('div');
+            div.className = 'recommendation-item mb-3 p-3 bg-light rounded';
+            div.innerHTML = `
+                <div class="d-flex align-items-start">
+                    <div class="recommendation-icon me-3">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">${rec.title || rec}</h6>
+                        ${rec.description ? `<p class="mb-0 text-muted">${rec.description}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // PDF Download function
+    function downloadReport() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Add content to PDF
+        doc.setFontSize(20);
+        doc.text('Student Performance Report', 20, 20);
+        
+        // Add more content...
+        
+        // Save the PDF
+        doc.save('student-performance-report.pdf');
+    }
 });
 </script>
 {% endblock %} 

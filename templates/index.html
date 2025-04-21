@@ -15,117 +15,113 @@
         font-size: 5rem;
         color: rgba(255, 255, 255, 0.5);
     }
-    .stat-card {
+    .feature-card {
         transition: all 0.3s;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        background: white;
     }
-    .stat-card:hover {
+    .feature-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
     }
-    .stat-icon {
+    .feature-icon {
         font-size: 2.5rem;
-        color: #3498db;
+        color: #4a6bfb;
+        margin-bottom: 1rem;
+    }
+    
+    /* Student data table styles */
+    #student-data-table-card {
+        border: 2px solid #e74c3c !important;
+        margin: 1rem 0 2rem 0;
+        transition: all 0.3s ease-in-out;
+        background-color: white;
+    }
+
+    .table-container {
+        padding: 0 20px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(231, 76, 60, 0.05);
+    }
+
+    .badge {
+        padding: 0.5em 0.8em;
+        font-weight: 500;
+    }
+
+    /* Active state for the View Student Data nav link */
+    #show-student-data-btn.active {
+        color: #e53935 !important;
+        font-weight: bold;
+    }
+
+    #show-student-data-btn:hover {
+        color: #e53935;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #4a6bfb 0%, #2c3e50 100%);
+        padding: 4rem 0;
+        margin-bottom: 4rem;
+        color: white;
+        text-align: center;
+    }
+
+    .hero-title {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        opacity: 0.9;
+        max-width: 800px;
+        margin: 0 auto;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Dashboard Section -->
-<section id="dashboard" class="mb-5">
-    <h1 class="text-center mb-4">Student Performance Dashboard</h1>
-    
-    <!-- Project intro -->
-    <div class="card project-info-card mb-4">
+<!-- Student Data Table Section -->
+<div class="table-container">
+    <div class="card shadow-sm mb-4" id="student-data-table-card" style="display: none;">
+        <div class="card-header bg-danger text-white">
+            <h5 class="card-title mb-0"><i class="fas fa-table me-2"></i>Student Data</h5>
+        </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-8">
-                    <h2>Welcome to the Student Performance Prediction System</h2>
-                    <p class="lead">Empowering educators with data-driven insights to improve student outcomes</p>
-                    <p>This intelligent system analyzes various factors affecting student performance and provides actionable predictions to help identify at-risk students early and implement targeted interventions.</p>
-                    <div class="mt-3">
-                        <a href="{{ url_for('add_student') }}" class="btn btn-primary me-2">
-                            <i class="fas fa-user-plus me-2"></i>Add New Student
-                        </a>
-                        <button class="btn btn-outline-secondary" id="learn-more-btn">
-                            <i class="fas fa-info-circle me-2"></i>Learn More
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-4 d-flex align-items-center justify-content-center">
-                    <i class="fas fa-chart-line project-icon"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-6 col-lg-3 mb-3">
-            <div class="card text-center h-100 shadow-sm stat-card">
-                <div class="card-body">
-                    <div class="stat-icon mb-2">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h5 class="card-title">Total Students</h5>
-                    <h3 id="total-students">3</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3 mb-3">
-            <div class="card text-center h-100 shadow-sm stat-card">
-                <div class="card-body">
-                    <div class="stat-icon mb-2">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h5 class="card-title">Average Performance</h5>
-                    <h3 id="avg-performance">75%</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3 mb-3">
-            <div class="card text-center h-100 shadow-sm stat-card">
-                <div class="card-body">
-                    <div class="stat-icon mb-2">
-                        <i class="fas fa-trophy"></i>
-                    </div>
-                    <h5 class="card-title">Top Performance</h5>
-                    <h3 id="top-performance">82.3%</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3 mb-3">
-            <div class="card text-center h-100 shadow-sm stat-card">
-                <div class="card-body">
-                    <div class="stat-icon mb-2">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <h5 class="card-title">Average Study Hours</h5>
-                    <h3 id="avg-study-hours">3.7</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="text-center mb-5">
-        <button id="show-student-data-btn" class="btn btn-lg btn-danger">
-            <i class="fas fa-table me-2"></i>View Student Data
-        </button>
-    </div>
-
-    <div class="card shadow-sm mb-4" id="student-data-table-card" style="display: none; border: 2px solid #e74c3c;">
-        <div class="card-body">
-            <h5 class="card-title fw-bold text-danger mb-4">Student Data</h5>
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Study Hours</th>
-                            <th>Attendance (%)</th>
-                            <th>Previous Grades</th>
-                            <th>Participation</th>
-                            <th>Socio-Economic Status</th>
-                            <th>Performance</th>
-                            <th>Actions</th>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Study Hours</th>
+                            <th scope="col">Attendance (%)</th>
+                            <th scope="col">Previous Grades</th>
+                            <th scope="col">Participation</th>
+                            <th scope="col">Socio-Economic Status</th>
+                            <th scope="col">Performance</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="students-table-body">
@@ -135,58 +131,171 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Student Performance Predictor</h1>
+        <p class="hero-subtitle">Empowering educators with AI-driven insights to enhance student success and identify areas for improvement</p>
+    </div>
+</section>
+
+<!-- Dashboard Section -->
+<section id="dashboard" class="container mb-5">
+    <!-- Project Features -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card p-4">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4>AI-Powered Analysis</h4>
+                <p>Advanced machine learning algorithms analyze multiple factors to predict student performance with high accuracy</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card p-4">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h4>Data-Driven Insights</h4>
+                <p>Comprehensive analytics and visualizations help identify trends and patterns in student performance</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card p-4">
+                <div class="feature-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h4>Early Intervention</h4>
+                <p>Identify at-risk students early and get personalized recommendations for improvement</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card p-4">
+                <div class="feature-icon">
+                    <i class="fas fa-users-cog"></i>
+                </div>
+                <h4>Easy Management</h4>
+                <p>Simple interface to manage student data, track progress, and generate performance reports</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-4">
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Add New Student
+        </a>
+    </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Print debug info to console
-    console.log("Student data loading initialized");
-    
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("DOM loaded");
-        
-        // Get elements
-        const studentDataTableCard = document.getElementById('student-data-table-card');
         const showStudentDataBtn = document.getElementById('show-student-data-btn');
+        const studentDataBtnText = document.getElementById('student-data-btn-text');
+        const studentDataTableCard = document.getElementById('student-data-table-card');
         const studentsTableBody = document.getElementById('students-table-body');
         let isTableVisible = false;
-        
-        // Make sure table is properly initialized as hidden
-        if (studentDataTableCard) {
-            studentDataTableCard.style.display = 'none';
-            console.log("Table hidden on load");
+
+        if (showStudentDataBtn) {
+            showStudentDataBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log("Button clicked - toggling student data");
+
+                if (studentDataTableCard) {
+                    isTableVisible = !isTableVisible;
+                    
+                    if (isTableVisible) {
+                        // Show table and load data
+                        console.log("Showing data table and loading data");
+                        loadStudentData();
+                        
+                        studentDataTableCard.style.display = 'block';
+                        studentDataBtnText.textContent = 'Hide Student Data';
+                        showStudentDataBtn.classList.add('active');
+                    } else {
+                        // Hide table
+                        console.log("Hiding data table");
+                        studentDataTableCard.style.display = 'none';
+                        studentDataBtnText.textContent = 'View Student Data';
+                        showStudentDataBtn.classList.remove('active');
+                    }
+                    
+                    console.log("Table visibility:", isTableVisible);
+                } else {
+                    console.error("Student data table card element not found!");
+                }
+            });
+        } else {
+            console.error("Show student data button not found!");
         }
-        
+
         // Function to load student data
         function loadStudentData() {
+            console.log("Fetching student data...");
+            
+            // Show loading state with spinner
+            studentsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2">Loading student data...</span>
+                    </td>
+                </tr>
+            `;
+            
             fetch('/get_student_data')
                 .then(response => {
+                    console.log("Response received:", response);
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error('Network response was not ok: ' + response.status);
                     }
                     return response.json();
                 })
                 .then(students => {
-                    console.log('Received students:', students);
+                    console.log('Received students data:', students);
+                    
+                    if (!Array.isArray(students)) {
+                        throw new Error('Invalid data format received from server');
+                    }
+                    
                     studentsTableBody.innerHTML = ''; // Clear existing data
 
                     if (students && students.length > 0) {
+                        console.log(`Processing ${students.length} students`);
                         students.forEach((student, index) => {
+                            // Format values with proper handling of undefined/null values
+                            const formatValue = (value) => value !== undefined && value !== null ? value : 'N/A';
+                            const formatPercentage = (value) => {
+                                const num = parseFloat(value);
+                                return !isNaN(num) ? num.toFixed(1) + '%' : 'N/A';
+                            };
+                            
+                            // Get performance badge color and value
+                            const performanceValue = parseFloat(student.performance);
+                            const performanceBadge = `<span class="badge bg-${getPerformanceBadgeColor(performanceValue)}">${formatPercentage(performanceValue)}</span>`;
+                            
+                            // Create table row with only important fields
                             const row = document.createElement('tr');
                             row.innerHTML = `
                                 <td>${index + 1}</td>
-                                <td>${student.name || 'N/A'}</td>
-                                <td>${student.study_hours || 'N/A'}</td>
-                                <td>${student.attendance || 'N/A'}</td>
-                                <td>${student.previous_grades || 'N/A'}</td>
-                                <td>${student.participation_score || 'N/A'}</td>
-                                <td>${student.socio_economic_status || 'N/A'}</td>
-                                <td><span class="badge bg-${getPerformanceBadgeColor(student.performance)}">${student.performance || 'N/A'}%</span></td>
+                                <td>${formatValue(student.name)}</td>
+                                <td>${formatValue(student.study_hours)}</td>
+                                <td>${formatPercentage(student.attendance)}</td>
+                                <td>${formatPercentage(student.previous_grades)}</td>
+                                <td>${formatValue(student.participation_score)}</td>
+                                <td>${formatValue(student.socio_economic_status)}</td>
+                                <td>${performanceBadge}</td>
                                 <td>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-success predict-btn" data-student-id="${index}">
-                                            <i class="fas fa-bolt me-1"></i> Predict
+                                            <i class="fas fa-chart-line me-1"></i> Predict
                                         </button>
                                         <button class="btn btn-sm btn-danger delete-btn" data-student-id="${index}">
                                             <i class="fas fa-trash me-1"></i> Delete
@@ -196,10 +305,27 @@
                             `;
                             studentsTableBody.appendChild(row);
                         });
+
+                        // Add event listeners for predict and delete buttons
+                        document.querySelectorAll('.predict-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const studentId = this.dataset.studentId;
+                                predictStudent(studentId);
+                            });
+                        });
+
+                        document.querySelectorAll('.delete-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const studentId = this.dataset.studentId;
+                                deleteStudent(studentId);
+                            });
+                        });
                     } else {
                         studentsTableBody.innerHTML = `
                             <tr>
-                                <td colspan="9" class="text-center">No student data available</td>
+                                <td colspan="9" class="text-center">
+                                    <i class="fas fa-info-circle me-2"></i>No student data available
+                                </td>
                             </tr>
                         `;
                     }
@@ -209,79 +335,61 @@
                     studentsTableBody.innerHTML = `
                         <tr>
                             <td colspan="9" class="text-center text-danger">
-                                Error loading student data. Please try again.
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Error loading student data: ${error.message}
                             </td>
                         </tr>
                     `;
                 });
         }
 
+        // Function to predict student performance
+        function predictStudent(studentId) {
+            fetch(`/predict_student/${studentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Create a formatted message with the prediction results
+                    const message = `
+                        Prediction Results:
+                        - Predicted Performance: ${data.prediction}%
+                        - Risk Level: ${data.risk_level}
+                        
+                        Recommendations:
+                        ${data.recommendations.join('\n')}
+                    `;
+                    alert(message);
+                })
+                .catch(error => {
+                    console.error('Error predicting:', error);
+                    alert('Error making prediction. Please try again.');
+                });
+        }
+
+        // Function to delete student
+        function deleteStudent(studentId) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                fetch(`/delete_student/${studentId}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        loadStudentData(); // Reload the table
+                        alert(data.message || 'Student deleted successfully');
+                    })
+                    .catch(error => {
+                        console.error('Error deleting:', error);
+                        alert('Error deleting student. Please try again.');
+                    });
+            }
+        }
+
         // Function to get badge color based on performance
         function getPerformanceBadgeColor(performance) {
-            if (!performance) return 'secondary';
+            if (!performance || isNaN(performance)) return 'secondary';
             if (performance >= 80) return 'success';
-            if (performance >= 60) return 'primary';
-            if (performance >= 40) return 'warning';
+            if (performance >= 70) return 'info';
+            if (performance >= 60) return 'warning';
             return 'danger';
         }
 
-        // Toggle table visibility and load data
-        if (showStudentDataBtn) {
-            showStudentDataBtn.addEventListener('click', function() {
-                console.log("Button clicked");
-                
-                isTableVisible = !isTableVisible;
-                
-                if (isTableVisible) {
-                    loadStudentData(); // Load fresh data when showing table
-                    studentDataTableCard.style.display = 'block';
-                    showStudentDataBtn.innerHTML = '<i class="fas fa-eye-slash me-2"></i>Hide Student Data';
-                    // Smooth scroll to table
-                    studentDataTableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    studentDataTableCard.style.display = 'none';
-                    showStudentDataBtn.innerHTML = '<i class="fas fa-table me-2"></i>View Student Data';
-                }
-            });
-        }
-        
-        // Handle predict and delete buttons
-        if (studentsTableBody) {
-            studentsTableBody.addEventListener('click', function(e) {
-                const target = e.target.closest('button');
-                if (!target) return;
-                
-                const studentId = target.dataset.studentId;
-                
-                if (target.classList.contains('predict-btn')) {
-                    // Handle prediction
-                    fetch(`/predict_student/${studentId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            alert(`Predicted performance: ${data.prediction}%\n\nSuggestions:\n${data.suggestions.join('\n')}`);
-                        })
-                        .catch(error => {
-                            console.error('Error predicting:', error);
-                            alert('Error making prediction. Please try again.');
-                        });
-                } else if (target.classList.contains('delete-btn')) {
-                    // Handle delete
-                    if (confirm('Are you sure you want to delete this student?')) {
-                        fetch(`/delete_student/${studentId}`, { method: 'DELETE' })
-                            .then(response => response.json())
-                            .then(data => {
-                                loadStudentData(); // Reload the table after deletion
-                                alert(data.message || 'Student deleted successfully');
-                            })
-                            .catch(error => {
-                                console.error('Error deleting:', error);
-                                alert('Error deleting student. Please try again.');
-                            });
-                    }
-                }
-            });
-        }
-        
         // Load initial stats
         fetch('/get_student_data')
             .then(response => response.json())

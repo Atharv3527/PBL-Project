@@ -187,23 +187,40 @@ def add_student():
 @app.route('/predict', methods=['GET', 'POST'])
 def predict_page():
     prediction_result = None
+    student_data = {}
+    
     if request.method == 'POST':
         # Handle form submission
         student_data = request.form.to_dict()
         
         # Convert numeric values to float
-        for key in ['study_hours', 'attendance', 'previous_grades', 'participation_score']:
-            if key in student_data and student_data[key]:
+        numeric_fields = [
+            'study_hours', 
+            'attendance', 
+            'previous_grades', 
+            'participation_score',
+            'sleep_duration',
+            'stress_level',
+            'physical_activity'
+        ]
+        
+        for field in numeric_fields:
+            if field in student_data and student_data[field]:
                 try:
-                    student_data[key] = float(student_data[key])
-                except ValueError:
-                    pass  # Keep as string if conversion fails
+                    student_data[field] = float(student_data[field])
+                except (ValueError, TypeError):
+                    student_data[field] = 0  # Default value if conversion fails
         
         # Get prediction
         prediction_result = make_prediction(student_data)
+        
+        # Convert any non-string values back to strings for the template
+        for key, value in student_data.items():
+            if not isinstance(value, str):
+                student_data[key] = str(value)
     
     # GET request or after POST processing
-    return render_template('predict.html', prediction=prediction_result)
+    return render_template('predict.html', prediction=prediction_result, student_data=student_data)
 
 @app.route('/about')
 def about():
@@ -544,14 +561,20 @@ def analyze_resume(text):
 def resume_analysis():
     return render_template('resume_analysis.html')
 
-@app.route('/api/analyze_resume', methods=['POST'])
+@app.route('/analyze_resume', methods=['POST'])
 def analyze_resume_api():
     if 'resume' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
+        return jsonify({
+            'success': False,
+            'error': 'No file provided'
+        })
     
     file = request.files['resume']
     if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
+        return jsonify({
+            'success': False,
+            'error': 'No file selected'
+        })
     
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -565,20 +588,133 @@ def analyze_resume_api():
             else:  # docx
                 text = extract_text_from_docx(file_path)
             
-            # Analyze the resume
-            result = analyze_resume(text)
+            # Analyze the resume text
+            analysis_result = {
+                'success': True,
+                'skills': {
+                    'technical': extract_technical_skills(text),
+                    'soft': extract_soft_skills(text)
+                },
+                'education': extract_education(text),
+                'experience': extract_experience(text),
+                'recommendations': generate_recommendations(text)
+            }
             
             # Clean up the uploaded file
             os.remove(file_path)
             
-            return jsonify(result)
+            return jsonify(analysis_result)
             
         except Exception as e:
             if os.path.exists(file_path):
                 os.remove(file_path)
-            return jsonify({'error': str(e)}), 500
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            })
     
-    return jsonify({'error': 'Invalid file type'}), 400
+    return jsonify({
+        'success': False,
+        'error': 'Invalid file type'
+    })
+
+def extract_technical_skills(text):
+    technical_skills = [
+        'Python', 'Java', 'JavaScript', 'C++', 'SQL',
+        'Machine Learning', 'Data Analysis', 'Web Development',
+        'React', 'Node.js', 'Docker', 'AWS', 'Git'
+    ]
+    found_skills = []
+    for skill in technical_skills:
+        if skill.lower() in text.lower():
+            found_skills.append(skill)
+    return found_skills
+
+def extract_soft_skills(text):
+    soft_skills = [
+        'Communication', 'Leadership', 'Problem Solving',
+        'Team Work', 'Time Management', 'Project Management',
+        'Critical Thinking', 'Adaptability', 'Creativity'
+    ]
+    found_skills = []
+    for skill in soft_skills:
+        if skill.lower() in text.lower():
+            found_skills.append(skill)
+    return found_skills
+
+def extract_education(text):
+    # Simple education extraction (can be enhanced with regex)
+    education = []
+    degrees = ['Bachelor', 'Master', 'PhD', 'BSc', 'MSc', 'MBA']
+    lines = text.split('\n')
+    
+    for line in lines:
+        for degree in degrees:
+            if degree.lower() in line.lower():
+                education.append({
+                    'degree': line.strip(),
+                    'institution': 'Institution',  # This could be enhanced with better parsing
+                    'year': 'Year'  # This could be enhanced with better parsing
+                })
+                break
+    
+    return education
+
+def extract_experience(text):
+    # Simple experience extraction (can be enhanced with regex)
+    experience = []
+    keywords = ['experience', 'work', 'position', 'job']
+    lines = text.split('\n')
+    
+    current_exp = None
+    for line in lines:
+        if any(keyword in line.lower() for keyword in keywords):
+            if current_exp:
+                experience.append(current_exp)
+            current_exp = {
+                'position': line.strip(),
+                'company': 'Company',  # This could be enhanced with better parsing
+                'duration': 'Duration',  # This could be enhanced with better parsing
+                'description': 'Description'  # This could be enhanced with better parsing
+            }
+    
+    if current_exp:
+        experience.append(current_exp)
+    
+    return experience
+
+def generate_recommendations(text):
+    recommendations = []
+    
+    # Check for technical skills
+    if len(extract_technical_skills(text)) < 5:
+        recommendations.append("Consider adding more technical skills to your resume")
+    
+    # Check for soft skills
+    if len(extract_soft_skills(text)) < 3:
+        recommendations.append("Include more soft skills to show your interpersonal abilities")
+    
+    # Check for education
+    if len(extract_education(text)) == 0:
+        recommendations.append("Add your educational background with degrees and institutions")
+    
+    # Check for experience
+    if len(extract_experience(text)) == 0:
+        recommendations.append("Include your work experience with detailed responsibilities")
+    
+    # General recommendations
+    recommendations.extend([
+        "Use action verbs to describe your achievements",
+        "Quantify your achievements with numbers and metrics",
+        "Ensure your resume is properly formatted and easy to read"
+    ])
+    
+    return recommendations
+
+@app.route('/student_data')
+def student_data():
+    """Route to display student data page"""
+    return render_template('student_data.html', students=students)
 
 if __name__ == '__main__':
     # Create static folder if it doesn't exist
