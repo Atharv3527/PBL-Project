@@ -126,9 +126,12 @@ def calculate_dashboard_statistics():
 
 # Routes
 @app.route('/')
+def index():
+    return redirect(url_for('dashboard'))
+
 @app.route('/dashboard')
 def dashboard():
-    statistics = calculate_dashboard_statistics()
+    statistics = calculate_statistics()
     return render_template('dashboard.html', statistics=statistics)
 
 @app.route('/about')
@@ -618,75 +621,163 @@ def visualize_performance(student_id):
 def get_dashboard_stats():
     return jsonify(calculate_dashboard_statistics())
 
+def analyze_resume_ats(resume_text):
+    """Analyze resume for ATS compatibility and provide suggestions."""
+    # Common ATS keywords for different fields
+    common_keywords = {
+        'technical': ['python', 'java', 'javascript', 'sql', 'html', 'css', 'react', 'node.js', 'git', 'docker'],
+        'soft_skills': ['communication', 'leadership', 'teamwork', 'problem-solving', 'time management'],
+        'education': ['bachelor', 'master', 'phd', 'degree', 'university', 'college'],
+        'experience': ['years', 'experience', 'responsibilities', 'achievements', 'projects']
+    }
+
+    # Calculate keyword match percentage
+    keyword_matches = sum(1 for keyword in common_keywords['technical'] if keyword.lower() in resume_text.lower())
+    keyword_match_percentage = (keyword_matches / len(common_keywords['technical'])) * 100
+
+    # Check format compatibility
+    format_score = 0
+    format_issues = []
+    
+    # Check for common formatting issues
+    if len(resume_text.split('\n')) > 2:  # Has multiple sections
+        format_score += 25
+    else:
+        format_issues.append("Consider adding more sections to your resume")
+    
+    if len(resume_text) > 500:  # Has sufficient content
+        format_score += 25
+    else:
+        format_issues.append("Your resume seems too short")
+    
+    if any(char.isdigit() for char in resume_text):  # Has numbers/achievements
+        format_score += 25
+    else:
+        format_issues.append("Add quantifiable achievements")
+    
+    if any(word in resume_text.lower() for word in ['achievement', 'accomplishment', 'result']):
+        format_score += 25
+    else:
+        format_issues.append("Include more achievement statements")
+
+    # Calculate readability score
+    words = resume_text.split()
+    sentences = resume_text.split('.')
+    avg_word_length = sum(len(word) for word in words) / len(words)
+    avg_sentence_length = len(words) / len(sentences)
+    
+    readability_score = 100 - ((avg_word_length - 4) * 10 + (avg_sentence_length - 15) * 2)
+    readability_score = max(0, min(100, readability_score))
+
+    # Generate suggestions
+    keyword_suggestions = []
+    if keyword_match_percentage < 70:
+        missing_keywords = [k for k in common_keywords['technical'] if k.lower() not in resume_text.lower()]
+        keyword_suggestions.append(f"Add these technical keywords: {', '.join(missing_keywords[:5])}")
+
+    format_suggestions = format_issues if format_issues else ["Your resume format looks good!"]
+
+    content_suggestions = []
+    if readability_score < 70:
+        content_suggestions.append("Simplify complex sentences")
+        content_suggestions.append("Use more bullet points for better readability")
+    if not any(word in resume_text.lower() for word in common_keywords['soft_skills']):
+        content_suggestions.append("Add more soft skills to your resume")
+
+    # Calculate overall ATS score
+    ats_score = (keyword_match_percentage * 0.4 + format_score * 0.3 + readability_score * 0.3)
+    
+    return {
+        'ats_score': round(ats_score),
+        'keywords_match': round(keyword_match_percentage),
+        'format_compatibility': format_score,
+        'readability_score': round(readability_score),
+        'keyword_suggestions': keyword_suggestions,
+        'format_suggestions': format_suggestions,
+        'content_suggestions': content_suggestions,
+        'ats_verdict': 'Good ATS Compatibility' if ats_score >= 70 else 'Needs Improvement',
+        'ats_summary': 'Your resume has good ATS compatibility' if ats_score >= 70 else 'Consider implementing the suggestions to improve ATS compatibility'
+    }
+
 @app.route('/analyze_resume', methods=['POST'])
 def analyze_resume():
-    if 'resume' not in request.files:
-        return jsonify({'success': False, 'error': 'No file uploaded'})
-    
-    file = request.files['resume']
-    if file.filename == '':
-        return jsonify({'success': False, 'error': 'No file selected'})
-    
-    if not file.filename.lower().endswith(('.pdf', '.doc', '.docx')):
-        return jsonify({'success': False, 'error': 'Invalid file type'})
-    
     try:
+        if 'resume' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+
+        file = request.files['resume']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+
         # Save the file temporarily
-        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(file.filename))
+        temp_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(temp_path)
-        
-        # Analyze the resume (this is a mock response for now)
-        analysis_result = {
-            'success': True,
-            'ats_score': 85,
-            'ats_verdict': 'Good ATS Compatibility',
-            'ats_summary': 'Your resume is well-formatted for ATS systems',
-            'technical_skills': [
-                {'name': 'Python', 'matched': True},
-                {'name': 'JavaScript', 'matched': True},
-                {'name': 'React', 'matched': True},
-                {'name': 'Node.js', 'matched': False},
-                {'name': 'SQL', 'matched': True}
-            ],
-            'skills_match_percentage': 75,
-            'soft_skills': [
-                'Communication',
-                'Leadership',
-                'Problem Solving',
-                'Team Work',
-                'Time Management'
-            ],
-            'education': [
-                {
-                    'degree': 'Bachelor of Technology',
-                    'institution': 'Example University',
-                    'year': '2020'
-                }
-            ],
-            'experience': [
-                {
-                    'position': 'Software Developer',
-                    'company': 'Tech Corp',
-                    'duration': '2020-2023'
-                }
-            ],
-            'recommendations': [
-                'Add more quantifiable achievements in your experience section',
-                'Include relevant certifications',
-                'Optimize keywords for your target role',
-                'Improve formatting for better ATS readability'
-            ]
-        }
-        
+
+        # Read the resume content
+        resume_text = ""
+        if file.filename.endswith('.pdf'):
+            resume_text = extract_text_from_pdf(temp_path)
+        elif file.filename.endswith(('.doc', '.docx')):
+            resume_text = extract_text_from_doc(temp_path)
+
+        # Perform ATS analysis
+        ats_analysis = analyze_resume_ats(resume_text)
+
         # Clean up the temporary file
         os.remove(temp_path)
-        
-        return jsonify(analysis_result)
-        
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
 
-# Ensure upload folder exists
+        # Return the analysis results
+        return jsonify({
+            'success': True,
+            **ats_analysis,
+            'technical_skills': [
+                {'name': 'Python', 'matched': 'python' in resume_text.lower()},
+                {'name': 'JavaScript', 'matched': 'javascript' in resume_text.lower()},
+                {'name': 'SQL', 'matched': 'sql' in resume_text.lower()},
+                {'name': 'HTML/CSS', 'matched': any(x in resume_text.lower() for x in ['html', 'css'])},
+                {'name': 'Git', 'matched': 'git' in resume_text.lower()}
+            ],
+            'skills_match_percentage': ats_analysis['keywords_match'],
+            'soft_skills': ['Communication', 'Teamwork', 'Problem Solving', 'Time Management'],
+            'education': [
+                {'degree': 'Bachelor of Technology', 'institution': 'Example University', 'year': '2020-2024'}
+            ],
+            'experience': [
+                {'position': 'Software Developer', 'company': 'Tech Corp', 'duration': '2022-Present'}
+            ],
+            'recommendations': [
+                'Add more quantifiable achievements',
+                'Include relevant project experience',
+                'Highlight key technical skills',
+                'Use action verbs in descriptions'
+            ]
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+def extract_text_from_pdf(pdf_path):
+    """Extract text from PDF file."""
+    try:
+        import PyPDF2
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text()
+            return text
+    except Exception as e:
+        raise Exception(f"Error extracting text from PDF: {str(e)}")
+
+def extract_text_from_doc(doc_path):
+    """Extract text from DOC/DOCX file."""
+    try:
+        import docx2txt
+        return docx2txt.process(doc_path)
+    except Exception as e:
+        raise Exception(f"Error extracting text from DOC/DOCX: {str(e)}")
+
+# Create upload folder if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 

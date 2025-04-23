@@ -5,7 +5,7 @@
 {% block extra_css %}
 <style>
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+        background: linear-gradient(135deg, #f0f2f5 0%, #e4e9f2 100%);
         min-height: 100vh;
     }
 
@@ -16,6 +16,7 @@
         text-align: center;
         margin-bottom: 3rem;
         border-radius: 0 0 2rem 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
 
     .hero-title {
@@ -33,22 +34,26 @@
         max-width: 800px;
         margin: 2rem auto;
         padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
 
     .drop-zone {
         border: 2px dashed #3f51b5;
-        border-radius: 10px;
+        border-radius: 15px;
         padding: 3rem;
         text-align: center;
         transition: all 0.3s ease;
-        background: rgba(63, 81, 181, 0.05);
+        background: linear-gradient(135deg, rgba(63, 81, 181, 0.05) 0%, rgba(26, 117, 255, 0.05) 100%);
         cursor: pointer;
         margin-bottom: 1.5rem;
     }
 
     .drop-zone.dragover {
-        background: rgba(63, 81, 181, 0.1);
+        background: linear-gradient(135deg, rgba(63, 81, 181, 0.1) 0%, rgba(26, 117, 255, 0.1) 100%);
         border-color: #1a237e;
+        transform: scale(1.02);
     }
 
     .drop-zone i {
@@ -60,31 +65,88 @@
     .results-container {
         display: none;
         margin-top: 2rem;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .card h3, .card h4 {
+        color: #1a1a2e;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    .card h3:after, .card h4:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #1a75ff, #003399);
+        border-radius: 3px;
     }
 
     .score-circle {
-        width: 150px;
-        height: 150px;
-        margin: 0 auto;
+        width: 300px;
+        height: 300px;
+        margin: 2rem auto;
         position: relative;
+        background: transparent;
+        border-radius: 50%;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .skill-badge {
         display: inline-block;
-        padding: 0.5rem 1rem;
-        margin: 0.25rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
+        padding: 0.6rem 1.2rem;
+        margin: 0.3rem;
+        border-radius: 25px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: transform 0.3s ease;
+    }
+
+    .skill-badge:hover {
+        transform: scale(1.05);
     }
 
     .skill-matched {
-        background: #c8e6c9;
-        color: #2e7d32;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
     }
 
     .skill-unmatched {
-        background: #ffcdd2;
-        color: #c62828;
+        background: linear-gradient(135deg, #ff6b6b, #ee5253);
+        color: white;
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
     }
 
     .loading-overlay {
@@ -94,11 +156,12 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         z-index: 1000;
         justify-content: center;
         align-items: center;
         flex-direction: column;
+        backdrop-filter: blur(5px);
     }
 
     .spinner {
@@ -108,6 +171,7 @@
         border-top: 5px solid #3f51b5;
         border-radius: 50%;
         animation: spin 1s linear infinite;
+        box-shadow: 0 4px 15px rgba(63, 81, 181, 0.3);
     }
 
     @keyframes spin {
@@ -127,28 +191,237 @@
         margin: 1rem auto;
         display: none;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(26, 117, 255, 0.3);
     }
 
     .btn-analyze:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0, 50, 153, 0.3);
+        box-shadow: 0 4px 15px rgba(26, 117, 255, 0.3);
     }
 
     .btn-analyze i {
         margin-right: 0.5rem;
     }
 
+    .btn-upload-again {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        width: 100%;
+        max-width: 300px;
+        margin: 1rem auto;
+        display: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-upload-again:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-upload-again i {
+        margin-right: 0.5rem;
+    }
+
     .selected-file {
         margin-top: 1rem;
-        padding: 0.5rem 1rem;
-        background: #e3f2fd;
-        border-radius: 4px;
+        padding: 0.8rem 1.5rem;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-radius: 10px;
         display: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
     .selected-file i {
         color: #1565c0;
         margin-right: 0.5rem;
+    }
+
+    .ats-analysis-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .ats-metric {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .ats-metric:hover {
+        transform: translateY(-5px);
+    }
+
+    .ats-metric i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #1a75ff, #003399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .ats-metric span {
+        display: block;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        font-size: 1.1rem;
+    }
+
+    .progress {
+        height: 10px;
+        background: #f0f2f5;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, #1a75ff, #003399);
+        transition: width 1.5s ease-in-out;
+        border-radius: 5px;
+    }
+
+    .suggestions-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .suggestion-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .suggestion-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .suggestion-card i {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #1a75ff, #003399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .suggestion-card h5 {
+        margin-bottom: 1.5rem;
+        color: #1a1a2e;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .suggestion-list {
+        list-style: none;
+        padding: 0;
+        text-align: left;
+    }
+
+    .suggestion-list li {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+        position: relative;
+        color: #4a4a4a;
+        line-height: 1.5;
+    }
+
+    .suggestion-list li:before {
+        content: "→";
+        color: #1a75ff;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+
+    .list-group-item {
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        transform: translateX(5px);
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .recommendations-section {
+        flex-grow: 1;
+    }
+
+    .recommendations-section h4 {
+        color: #1a1a2e;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+    }
+
+    .recommendations-section h4:after {
+        content: '';
+        display: block;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #1a75ff, #003399);
+        margin-top: 0.5rem;
+        border-radius: 3px;
+    }
+
+    /* Animation for progress bars */
+    @keyframes progressAnimation {
+        from { width: 0; }
+    }
+
+    .progress-bar {
+        animation: progressAnimation 1.5s ease-out;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .col-md-6 {
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    /* Add a subtle pattern to the background */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at 25px 25px, rgba(0, 0, 0, 0.02) 2%, transparent 0%),
+            radial-gradient(circle at 75px 75px, rgba(0, 0, 0, 0.02) 2%, transparent 0%);
+        background-size: 100px 100px;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* Add a subtle gradient overlay to the page */
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(26, 117, 255, 0.05) 0%, rgba(0, 51, 153, 0.05) 100%);
+        pointer-events: none;
+        z-index: -1;
     }
 </style>
 {% endblock %}
@@ -185,29 +458,61 @@
         <button class="btn btn-analyze" id="analyzeBtn">
             <i class="fas fa-search"></i>Analyze Resume
         </button>
+        <button class="btn btn-upload-again" id="uploadAgainBtn">
+            <i class="fas fa-upload"></i>Upload Again
+        </button>
     </div>
 
-    <div class="results-container" id="resultsContainer">
-        <div class="card mb-4">
-            <div class="card-body text-center">
-                <h3>ATS Score</h3>
-                <div class="score-circle" id="scoreGauge"></div>
-                <h4 id="atsVerdict" class="mt-3"></h4>
-                <p id="atsSummary" class="text-muted"></p>
-            </div>
-        </div>
-
+    <div class="results-container" id="resultsContainer" style="display: none;">
         <div class="row">
+            <!-- Left Column -->
             <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h3>ATS Score Analysis</h3>
+                        <div class="score-circle" id="scoreGauge"></div>
+                        <h4 id="atsVerdict" class="mt-4"></h4>
+                        <p id="atsSummary" class="text-muted"></p>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4>Compatibility Metrics</h4>
+                        <div class="ats-analysis-grid">
+                            <div class="ats-metric">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Keywords Match</span>
+                                <div class="progress">
+                                    <div class="progress-bar" id="keywordsMatchBar"></div>
+                                </div>
+                            </div>
+                            <div class="ats-metric">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Format Compatibility</span>
+                                <div class="progress">
+                                    <div class="progress-bar" id="formatCompatibilityBar"></div>
+                                </div>
+                            </div>
+                            <div class="ats-metric">
+                                <i class="fas fa-font"></i>
+                                <span>Readability Score</span>
+                                <div class="progress">
+                                    <div class="progress-bar" id="readabilityBar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card mb-4">
                     <div class="card-body">
                         <h4>Technical Skills</h4>
-                        <div id="technicalSkills"></div>
-                        <p class="mt-2">Skills Match: <span id="skillsMatchPercentage"></span>%</p>
+                        <div id="technicalSkills" class="mb-3"></div>
+                        <p class="mt-3">Skills Match: <span id="skillsMatchPercentage" class="fw-bold"></span>%</p>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
+
                 <div class="card mb-4">
                     <div class="card-body">
                         <h4>Soft Skills</h4>
@@ -215,29 +520,49 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <h4>Education & Experience</h4>
-                <div id="education"></div>
-                <hr>
-                <div id="experience"></div>
-            </div>
-        </div>
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4>Optimization Suggestions</h4>
+                        <div class="suggestions-grid">
+                            <div class="suggestion-card">
+                                <i class="fas fa-key"></i>
+                                <h5>Keywords</h5>
+                                <ul id="keywordSuggestions" class="suggestion-list"></ul>
+                            </div>
+                            <div class="suggestion-card">
+                                <i class="fas fa-paint-brush"></i>
+                                <h5>Formatting</h5>
+                                <ul id="formatSuggestions" class="suggestion-list"></ul>
+                            </div>
+                            <div class="suggestion-card">
+                                <i class="fas fa-chart-line"></i>
+                                <h5>Content</h5>
+                                <ul id="contentSuggestions" class="suggestion-list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h4>Recommendations to Improve</h4>
-                <ul id="recommendations" class="list-group list-group-flush"></ul>
+                <div class="card">
+                    <div class="card-body recommendations-section">
+                        <h4>Recommendations to Improve</h4>
+                        <ul id="recommendations" class="list-group list-group-flush"></ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/gauge-chart@0.5.3/dist/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     let selectedFile = null;
+    const resultsContainer = document.getElementById('resultsContainer');
+    let gaugeInstance = null;
 
     function debugLog(message, data = null) {
         console.log(`[Debug] ${message}`, data || '');
@@ -262,10 +587,12 @@
         const fileNameElement = document.getElementById('fileName');
         const selectedFileElement = document.getElementById('selectedFile');
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const uploadAgainBtn = document.getElementById('uploadAgainBtn');
         
         fileNameElement.textContent = file.name;
         selectedFileElement.style.display = 'block';
         analyzeBtn.style.display = 'block';
+        uploadAgainBtn.style.display = 'none';
     }
 
     function handleFileSelect(file) {
@@ -284,6 +611,84 @@
         }
     }
 
+    function initGauge() {
+        const element = document.getElementById('scoreGauge');
+        // Clear any existing content
+        element.innerHTML = '';
+        
+        // Create canvas element
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 300;
+        element.appendChild(canvas);
+        
+        const ctx = canvas.getContext('2d');
+        return {
+            updateValue: function(value) {
+                // Clear canvas with transparent background
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(canvas.width, canvas.height) / 2.5;
+                
+                // Draw the outer arc (background)
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
+                ctx.strokeStyle = '#e6e6e6';
+                ctx.lineWidth = 20;
+                ctx.stroke();
+                
+                // Draw the value arc
+                ctx.beginPath();
+                const angle = Math.PI + (value * Math.PI);
+                ctx.arc(centerX, centerY, radius, Math.PI, angle, false);
+                ctx.strokeStyle = '#ff6b47'; // Red-orange color
+                ctx.lineWidth = 20;
+                ctx.stroke();
+                
+                // Draw the needle
+                const needleAngle = Math.PI + (value * Math.PI);
+                const needleLength = radius - 20;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + needleLength * Math.cos(needleAngle),
+                    centerY + needleLength * Math.sin(needleAngle)
+                );
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw the center circle
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = '#333333';
+                ctx.fill();
+                
+                // Draw the score text
+                ctx.font = 'bold 48px Arial';
+                ctx.fillStyle = '#333333';
+                ctx.textAlign = 'center';
+                ctx.fillText(Math.round(value * 100), centerX, centerY + radius/2 + 20);
+                
+                // Draw "Resume Score" text
+                ctx.font = '24px Arial';
+                ctx.fillStyle = '#666666';
+                ctx.fillText('Resume Score', centerX, centerY + radius/2 - 20);
+            }
+        };
+    }
+
+    function updateGauge(score) {
+        if (!gaugeInstance) {
+            gaugeInstance = initGauge();
+        }
+        gaugeInstance.updateValue(score / 100);
+    }
+
+    // Event Listeners
     document.getElementById('dropZone').addEventListener('click', () => {
         document.getElementById('fileInput').click();
     });
@@ -358,22 +763,50 @@
         }
     });
 
-    let gaugeInstance = null;
-
-    function initGauge(element) {
-        const gaugeOptions = {
-            arcWidth: 0.2,
-            maxValue: 100,
-            animationSpeed: 1
-        };
-        return GaugeChart.gaugeChart(element, gaugeOptions);
+    function resetPage() {
+        // Reset file selection
+        selectedFile = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileName').textContent = '';
+        document.getElementById('selectedFile').style.display = 'none';
+        
+        // Hide results
+        document.getElementById('resultsContainer').style.display = 'none';
+        
+        // Show/hide appropriate buttons
+        document.getElementById('analyzeBtn').style.display = 'none';
+        document.getElementById('uploadAgainBtn').style.display = 'block';
+        
+        // Reset gauge
+        if (gaugeInstance) {
+            const element = document.getElementById('scoreGauge');
+            element.innerHTML = '';
+            gaugeInstance = null;
+        }
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function updateGauge(score) {
-        if (!gaugeInstance) {
-            gaugeInstance = initGauge(document.getElementById('scoreGauge'));
+    // Add event listener for Upload Again button
+    document.getElementById('uploadAgainBtn').addEventListener('click', resetPage);
+
+    function updateGaugeCardStyle() {
+        const cardBody = document.querySelector('.card-body');
+        if (cardBody) {
+            cardBody.style.background = 'transparent';
+            cardBody.style.borderRadius = '20px';
+            cardBody.style.padding = '2rem';
         }
-        gaugeInstance.updateValue(score / 100);
+        
+        const title = document.querySelector('.card-body h3');
+        if (title) title.style.color = '#333333';
+        
+        const verdict = document.getElementById('atsVerdict');
+        if (verdict) verdict.style.color = '#333333';
+        
+        const summary = document.getElementById('atsSummary');
+        if (summary) summary.style.color = '#666666';
     }
 
     function displayResults(data) {
@@ -381,8 +814,30 @@
 
         // Update ATS score and verdict
         updateGauge(data.ats_score);
+        updateGaugeCardStyle();
         document.getElementById('atsVerdict').textContent = data.ats_verdict;
         document.getElementById('atsSummary').textContent = data.ats_summary;
+
+        // Update ATS metrics
+        document.getElementById('keywordsMatchBar').style.width = data.keywords_match + '%';
+        document.getElementById('formatCompatibilityBar').style.width = data.format_compatibility + '%';
+        document.getElementById('readabilityBar').style.width = data.readability_score + '%';
+
+        // Update suggestions
+        const keywordSuggestions = document.getElementById('keywordSuggestions');
+        keywordSuggestions.innerHTML = data.keyword_suggestions.map(suggestion => 
+            `<li>${suggestion}</li>`
+        ).join('');
+
+        const formatSuggestions = document.getElementById('formatSuggestions');
+        formatSuggestions.innerHTML = data.format_suggestions.map(suggestion => 
+            `<li>${suggestion}</li>`
+        ).join('');
+
+        const contentSuggestions = document.getElementById('contentSuggestions');
+        contentSuggestions.innerHTML = data.content_suggestions.map(suggestion => 
+            `<li>${suggestion}</li>`
+        ).join('');
 
         // Update technical skills
         const technicalSkillsDiv = document.getElementById('technicalSkills');
@@ -391,30 +846,17 @@
                 ${skill.name}
             </span>`
         ).join('');
-        document.getElementById('skillsMatchPercentage').textContent = data.skills_match_percentage;
+        
+        // Calculate skills match percentage
+        const matchedSkills = data.technical_skills.filter(skill => skill.matched).length;
+        const totalSkills = data.technical_skills.length;
+        const skillsMatchPercentage = Math.round((matchedSkills / totalSkills) * 100);
+        document.getElementById('skillsMatchPercentage').textContent = skillsMatchPercentage;
 
         // Update soft skills
         const softSkillsDiv = document.getElementById('softSkills');
         softSkillsDiv.innerHTML = data.soft_skills.map(skill => 
             `<span class="skill-badge skill-matched">${skill}</span>`
-        ).join('');
-
-        // Update education
-        const educationDiv = document.getElementById('education');
-        educationDiv.innerHTML = data.education.map(edu => 
-            `<div class="mb-2">
-                <strong>${edu.degree}</strong><br>
-                ${edu.institution} (${edu.year})
-            </div>`
-        ).join('');
-
-        // Update experience
-        const experienceDiv = document.getElementById('experience');
-        experienceDiv.innerHTML = data.experience.map(exp => 
-            `<div class="mb-2">
-                <strong>${exp.position}</strong><br>
-                ${exp.company} (${exp.duration})
-            </div>`
         ).join('');
 
         // Update recommendations
@@ -425,6 +867,9 @@
 
         resultsContainer.style.display = 'block';
         resultsContainer.scrollIntoView({ behavior: 'smooth' });
+
+        // Show Upload Again button
+        document.getElementById('uploadAgainBtn').style.display = 'block';
     }
 </script>
 {% endblock %} 
