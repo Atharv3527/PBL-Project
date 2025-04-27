@@ -5,525 +5,160 @@
 {% block extra_css %}
 <style>
     body {
-        background: linear-gradient(135deg, #f8fafc 0%, #e0f7fa 100%) !important;
+        background-color: #e0f7fa !important;
         min-height: 100vh;
     }
-    
-    .main-heading {
-        text-align: center;
-        margin: 2rem 0;
-        color: #1a237e;
-        position: relative;
-        padding-bottom: 1rem;
+    .predict-container {
+        padding: 2rem 0;
     }
-    
-    .main-heading::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100px;
-        height: 4px;
-        background: linear-gradient(135deg, #1a75ff, #003399);
-        border-radius: 2px;
-    }
-    
     .card {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         border-radius: 16px;
-        margin: 2rem auto;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         border: none;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        max-width: 1200px;
     }
-    
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    .display-1 {
+        font-size: 4rem;
+        font-weight: bold;
     }
-    
-    .card-header {
-        background: linear-gradient(135deg, #1a75ff, #003399);
-        color: white;
-        border-top-left-radius: 16px !important;
-        border-top-right-radius: 16px !important;
-        padding: 1.5rem;
-    }
-    
-    .form-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #e9ecef;
-    }
-
-    .section-icon {
-        width: 32px;
-        height: 32px;
-        background: #1a75ff;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-    }
-
-    .section-icon i {
-        color: white;
-        font-size: 1rem;
-    }
-
-    .form-label {
-        font-weight: 500;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 0.75rem;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #1a75ff;
-        box-shadow: 0 0 0 0.2rem rgba(26, 117, 255, 0.15);
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #1a75ff, #003399);
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 15px rgba(0, 50, 153, 0.3);
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 50, 153, 0.4);
-    }
+    .text-success { color: #28a745 !important; }
+    .text-primary { color: #007bff !important; }
+    .text-warning { color: #ffc107 !important; }
+    .text-danger { color: #dc3545 !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="main-heading">
-        <h2>Predict Student Performance</h2>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <h5><i class="fas fa-chart-line me-2"></i>Performance Prediction Form</h5>
-        </div>
+<div class="container predict-container">
+    <h1 class="text-center mb-4">Predict Student Performance</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
         <div class="card-body">
+                    <h5 class="card-title">Student Information</h5>
+                    <div id="errorAlert" class="alert alert-danger d-none"></div>
             <form id="predictForm">
-                <!-- Basic Information -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-user"></i>
+                        <div class="mb-3">
+                            <label class="form-label">Study Hours (per day)</label>
+                            <input type="number" step="0.1" min="0" max="24" name="study_hours" class="form-control" placeholder="Enter average study hours per day" required>
+                            <div class="form-text">Enter a value between 0 and 24</div>
                         </div>
-                        <h6 class="section-title">Basic Information</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="name" class="form-label">Student Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="mb-3">
+                            <label class="form-label">Attendance (%)</label>
+                            <input type="number" step="0.1" min="0" max="100" name="attendance" class="form-control" placeholder="Enter attendance percentage" required>
+                            <div class="form-text">Enter a value between 0 and 100</div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="gender" class="form-label">Gender</label>
-                            <select class="form-select" id="gender" name="gender" required>
-                                <option value="">Select Gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                            </select>
+                        <div class="mb-3">
+                            <label class="form-label">Previous Grades</label>
+                            <input type="number" step="0.1" min="0" max="100" name="previous_grades" class="form-control" placeholder="Enter previous grades (0-100)" required>
+                            <div class="form-text">Enter a value between 0 and 100</div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Academic Performance -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-graduation-cap"></i>
+                        <div class="mb-3">
+                            <label class="form-label">Participation Score</label>
+                            <input type="number" step="0.1" min="0" max="10" name="participation_score" class="form-control" placeholder="Enter participation score (0-10)" required>
+                            <div class="form-text">Enter a value between 0 and 10</div>
                         </div>
-                        <h6 class="section-title">Academic Performance</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label for="study_hours" class="form-label">Study Hours (per day)</label>
-                            <input type="number" class="form-control" id="study_hours" name="study_hours" min="0" max="24" step="0.5" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="attendance" class="form-label">Attendance (%)</label>
-                            <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="previous_grades" class="form-label">Previous Grades (%)</label>
-                            <input type="number" class="form-control" id="previous_grades" name="previous_grades" min="0" max="100" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="participation_score" class="form-label">Participation Score (0-10)</label>
-                            <input type="number" class="form-control" id="participation_score" name="participation_score" min="0" max="10" required>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Background & Environment -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <h6 class="section-title">Background & Environment</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="socio_economic_status" class="form-label">Socio-Economic Status</label>
-                            <select class="form-select" id="socio_economic_status" name="socio_economic_status" required>
-                                <option value="">Select Status</option>
-                                <option value="low">Low</option>
-                                <option value="middle">Middle</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="parents_education" class="form-label">Parents Education</label>
-                            <select class="form-select" id="parents_education" name="parents_education" required>
-                                <option value="">Select Education Level</option>
-                                <option value="primary">Primary</option>
-                                <option value="secondary">Secondary</option>
-                                <option value="graduate">Graduate</option>
-                                <option value="post_graduate">Post Graduate</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="study_environment" class="form-label">Study Environment</label>
-                            <select class="form-select" id="study_environment" name="study_environment" required>
-                                <option value="">Select Environment</option>
-                                <option value="quiet">Quiet</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="noisy">Noisy</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Learning & Activities -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-book-reader"></i>
-                        </div>
-                        <h6 class="section-title">Learning & Activities</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="learning_style" class="form-label">Learning Style</label>
-                            <select class="form-select" id="learning_style" name="learning_style" required>
-                                <option value="">Select Style</option>
-                                <option value="visual">Visual</option>
-                                <option value="auditory">Auditory</option>
-                                <option value="kinesthetic">Kinesthetic</option>
-                                <option value="reading_writing">Reading/Writing</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="extracurricular" class="form-label">Extracurricular Activities</label>
-                            <select class="form-select" id="extracurricular" name="extracurricular" required>
-                                <option value="">Select Level</option>
-                                <option value="none">None</option>
-                                <option value="low">Low</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Parental Involvement -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h6 class="section-title">Parental Involvement</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="parent_meeting_freq" class="form-label">Parent-Teacher Meeting Frequency</label>
-                            <select class="form-select" id="parent_meeting_freq" name="parent_meeting_freq" required>
-                                <option value="">Select Frequency</option>
-                                <option value="never">Never</option>
-                                <option value="rarely">Rarely</option>
-                                <option value="sometimes">Sometimes</option>
-                                <option value="often">Often</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="home_support" class="form-label">Home Support for Learning</label>
-                            <select class="form-select" id="home_support" name="home_support" required>
-                                <option value="">Select Level</option>
-                                <option value="low">Low</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Psychological & Lifestyle -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <h6 class="section-title">Psychological & Lifestyle Factors</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="sleep_duration" class="form-label">Sleep Duration (hrs/day)</label>
-                            <input type="number" class="form-control" id="sleep_duration" name="sleep_duration" min="4" max="12" step="0.5" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="stress_level" class="form-label">Stress Level (1-10)</label>
-                            <input type="number" class="form-control" id="stress_level" name="stress_level" min="1" max="10" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="physical_activity" class="form-label">Physical Activity (hrs/week)</label>
-                            <input type="number" class="form-control" id="physical_activity" name="physical_activity" min="0" max="20" step="0.5" required>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Peer Influence & Social Factors -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-user-friends"></i>
-                        </div>
-                        <h6 class="section-title">Peer Influence & Social Factors</h6>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="peer_academic_quality" class="form-label">Peer Group Academic Quality</label>
-                            <select class="form-select" id="peer_academic_quality" name="peer_academic_quality" required>
-                                <option value="">Select Quality</option>
-                                <option value="low">Low</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="assignment_timeliness" class="form-label">Assignment Submission Timeliness</label>
-                            <select class="form-select" id="assignment_timeliness" name="assignment_timeliness" required>
-                                <option value="">Select Timeliness</option>
-                                <option value="never">Never</option>
-                                <option value="often_late">Often Late</option>
-                                <option value="sometimes_late">Sometimes Late</option>
-                                <option value="always_on_time">Always On Time</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end mt-4">
-                    <button type="reset" class="btn btn-secondary me-2">
-                        <i class="fas fa-undo me-2"></i>Reset
-                    </button>
-                    <a href="/student_data" class="btn btn-success me-2">
-                        <i class="fas fa-table me-2"></i>Go to Student Data
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-chart-line me-2"></i>Predict
-                    </button>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <a href="/student_data" class="btn btn-success">Go to Student Data</a>
+                            <button type="submit" class="btn btn-primary" id="predictBtn">Predict Performance</button>
                 </div>
             </form>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <!-- Results Section (Initially Hidden) -->
-    <div id="results" class="container-fluid mt-4" style="display: none;">
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8 mb-4">
-                <!-- Prediction Summary Card -->
-                <div class="card text-center shadow-xl rounded-4 p-5 bg-gradient" style="background: linear-gradient(135deg, #e0f7fa 0%, #e3f2fd 100%);">
-                    <h2 class="text-xl font-bold mb-3">Predicted Performance</h2>
-                    <p id="predictionScore" class="text-5xl font-extrabold mb-2"></p>
-                    <div class="w-100 bg-gray-200 rounded-full h-4 mt-4 mb-2" style="height: 1.5rem;">
-                        <div id="predictionProgress" class="bg-success h-4 rounded-full" style="height: 1.5rem; width: 0%; transition: width 1s;"></div>
+        <div class="col-md-6">
+            <div id="resultCard" class="card shadow-sm mb-4 h-100 d-none">
+                <div class="card-body">
+                    <h5 class="card-title">Prediction Results</h5>
+                    <div class="text-center my-4">
+                        <h2>Predicted Performance</h2>
+                        <h1 id="predictedValue" class="display-1 fw-bold">--%</h1>
+                        <p id="performanceLabel" class="text-muted"></p>
                     </div>
-                    <span id="performanceLabel" class="badge fs-5 mb-2"></span>
-                    <p id="performanceCategory" class="text-sm text-gray-600 mt-2"></p>
+                    <h4 class="mt-4">Suggestions for Improvement</h4>
+                    <ul id="suggestionsList" class="list-group list-group-flush"></ul>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-8 mb-4">
-                <!-- Bar and Pie Charts -->
-                <div class="card shadow rounded-4 p-3 mb-3">
-                    <h5 class="text-center">Performance Comparison</h5>
-                    <canvas id="comparisonChart"></canvas>
+            <div id="placeholderCard" class="card shadow-sm mb-4 h-100 bg-light">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                    <i class="bi bi-graph-up display-1 text-muted mb-3"></i>
+                    <h3 class="text-muted">Enter student data and click "Predict Performance"</h3>
+                    <p class="text-muted">
+                        The prediction model will analyze the data and provide a performance prediction along with suggestions for improvement.
+                    </p>
                 </div>
-                <div class="card shadow rounded-4 p-3">
-                    <h5 class="text-center">Factor Distribution</h5>
-                    <canvas id="pieChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8 mb-4">
-                <!-- Suggestions Section -->
-                <div class="card shadow rounded-4 p-4 bg-white">
-                    <h4 class="mb-3"><i class="fas fa-lightbulb me-2"></i>Suggestions</h4>
-                    <ul class="list-group list-group-flush" id="suggestionsList"></ul>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-8 mb-4">
-                <!-- Data Table View -->
-                <div class="card shadow rounded-4 p-4 bg-white">
-                    <h4 class="mb-3"><i class="fas fa-table me-2"></i>Performance Factors</h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Factor</th>
-                                    <th>Value</th>
-                                    <th>Influence</th>
-                                </tr>
-                            </thead>
-                            <tbody id="factorsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-6 col-md-8 d-flex justify-content-between">
-                <button class="btn btn-outline-primary" id="downloadPDFBtn"><i class="fas fa-file-pdf me-2"></i>Download PDF</button>
-                <button class="btn btn-outline-secondary" id="predictAnotherBtn"><i class="fas fa-user-plus me-2"></i>Predict for Another Student</button>
             </div>
         </div>
     </div>
-
-    <div id="predictError" class="alert alert-danger d-none" role="alert"></div>
-    <pre id="debugArea" style="background:#f8f8f8;color:#333;padding:10px;display:none;"></pre>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+function getPredictionColorClass(value) {
+    if (value >= 80) return 'text-success';
+    if (value >= 60) return 'text-primary';
+    if (value >= 40) return 'text-warning';
+    return 'text-danger';
+}
+
 document.getElementById('predictForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    document.getElementById('predictError').classList.add('d-none');
-    document.getElementById('predictError').textContent = '';
-    document.getElementById('debugArea').style.display = 'none';
-    document.getElementById('debugArea').textContent = '';
+    document.getElementById('errorAlert').classList.add('d-none');
+    document.getElementById('resultCard').classList.add('d-none');
+    document.getElementById('placeholderCard').classList.remove('d-none');
+    const form = e.target;
+    const data = {
+        study_hours: form.study_hours.value,
+        attendance: form.attendance.value,
+        previous_grades: form.previous_grades.value,
+        participation_score: form.participation_score.value
+    };
     try {
-        const formData = new FormData(this);
-        const jsonData = {};
-        formData.forEach((value, key) => { jsonData[key] = value; });
-        const response = await fetch('/predict_performance', {
+        document.getElementById('predictBtn').disabled = true;
+        const response = await fetch('/api/predict', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(jsonData)
+            body: JSON.stringify(data)
         });
-        let resultText = await response.text();
-        let result;
-        try {
-            result = JSON.parse(resultText);
-        } catch (parseErr) {
-            document.getElementById('debugArea').style.display = 'block';
-            document.getElementById('debugArea').textContent = 'Raw response (not JSON):\n' + resultText;
-            throw new Error('Backend did not return valid JSON.');
-        }
-        document.getElementById('debugArea').style.display = 'block';
-        document.getElementById('debugArea').textContent = 'Raw response (JSON):\n' + JSON.stringify(result, null, 2);
-        if (result.success) {
-            document.getElementById('predictError').classList.add('d-none');
-            displayResults(result);
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        if (!response.ok) throw new Error('Prediction failed');
+        const result = await response.json();
+        // Show result
+        document.getElementById('placeholderCard').classList.add('d-none');
+        document.getElementById('resultCard').classList.remove('d-none');
+        const value = Number(result.prediction).toFixed(2);
+        const predElem = document.getElementById('predictedValue');
+        predElem.textContent = value + '%';
+        predElem.className = 'display-1 fw-bold ' + getPredictionColorClass(value);
+        // Label
+        let label = '';
+        if (value >= 80) label = 'Excellent';
+        else if (value >= 60) label = 'Good';
+        else if (value >= 40) label = 'Average';
+        else label = 'Needs Improvement';
+        document.getElementById('performanceLabel').textContent = label;
+        // Suggestions
+        const suggestionsList = document.getElementById('suggestionsList');
+        suggestionsList.innerHTML = '';
+        if (result.suggestions && result.suggestions.length > 0) {
+            result.suggestions.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = '<i class="bi bi-check-circle-fill text-success me-2"></i>' + s;
+                suggestionsList.appendChild(li);
+            });
         } else {
-            throw new Error(result.error || 'Failed to make prediction');
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = 'No suggestions available.';
+            suggestionsList.appendChild(li);
         }
-    } catch (error) {
-        document.getElementById('predictError').classList.remove('d-none');
-        document.getElementById('predictError').textContent = error.message || 'An error occurred while making the prediction';
+    } catch (err) {
+        document.getElementById('errorAlert').classList.remove('d-none');
+        document.getElementById('errorAlert').textContent = err.message || 'An error occurred during prediction.';
+    } finally {
+        document.getElementById('predictBtn').disabled = false;
     }
 });
-
-function displayResults(result) {
-    document.getElementById('results').style.display = 'block';
-    document.getElementById('predictionScore').textContent = result.prediction ? `${Number(result.prediction).toFixed(1)}%` : 'N/A';
-    const progress = document.getElementById('predictionProgress');
-    progress.style.width = '0%';
-    setTimeout(() => { progress.style.width = `${result.prediction || 0}%`; }, 100);
-    document.getElementById('performanceLabel').textContent = result.category || 'N/A';
-    document.getElementById('performanceLabel').className = `badge fs-5 mb-2 bg-${result.category_color || 'secondary'}`;
-    document.getElementById('performanceCategory').textContent = result.category || 'N/A';
-    document.getElementById('performanceCategory').className = `text-${result.category_color || 'secondary'}`;
-    // Bar Chart
-    const compCtx = document.getElementById('comparisonChart').getContext('2d');
-    if (window.compChart) window.compChart.destroy();
-    window.compChart = new Chart(compCtx, {
-        type: 'bar',
-        data: {
-            labels: (result.visualizations && result.visualizations.performance_comparison && result.visualizations.performance_comparison.labels) || ['Predicted Score', 'Class Average'],
-            datasets: [{
-                data: (result.visualizations && result.visualizations.performance_comparison && result.visualizations.performance_comparison.data) || [result.prediction || 0, result.class_average || 0],
-                backgroundColor: (result.visualizations && result.visualizations.performance_comparison && result.visualizations.performance_comparison.colors) || ['#1a75ff', '#4CAF50'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false }, title: { display: false } },
-            scales: { y: { beginAtZero: true, max: 100 } }
-        }
-    });
-    // Pie Chart
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    if (window.pieChart) window.pieChart.destroy();
-    window.pieChart = new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-            labels: (result.visualizations && result.visualizations.feature_importance && result.visualizations.feature_importance.labels) || ['Study Hours', 'Attendance', 'Grades', 'Participation'],
-            datasets: [{
-                data: (result.visualizations && result.visualizations.feature_importance && result.visualizations.feature_importance.data) || [25, 20, 15, 10],
-                backgroundColor: (result.visualizations && result.visualizations.feature_importance && result.visualizations.feature_importance.colors) || ['#1a75ff', '#4CAF50', '#FFC107', '#FF5722']
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
-    // Suggestions
-    const suggestionsList = document.getElementById('suggestionsList');
-    suggestionsList.innerHTML = (result.suggestions && result.suggestions.length > 0)
-        ? result.suggestions.map(s => `<li class=\"list-group-item d-flex align-items-center\"><i class=\"fas fa-check-circle text-success me-2\"></i>${s}</li>`).join('')
-        : '<li class=\"list-group-item\">No suggestions available.</li>';
-    // Data Table
-    const factorsTableBody = document.getElementById('factorsTableBody');
-    factorsTableBody.innerHTML = (result.factors && result.factors.length > 0)
-        ? result.factors.map(f => `<tr><td>${f.name}</td><td>${f.value}</td><td>${f.impact}</td></tr>`).join('')
-        : '<tr><td colspan=\"3\">No data available.</td></tr>';
-    // Download PDF (stub)
-    document.getElementById('downloadPDFBtn').onclick = function() { alert('PDF download coming soon!'); };
-    // Predict Another Student
-    document.getElementById('predictAnotherBtn').onclick = function() { window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('predictForm').reset(); document.getElementById('results').style.display = 'none'; };
-}
 </script>
 {% endblock %} 

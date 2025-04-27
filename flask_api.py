@@ -48,9 +48,14 @@ if not os.path.exists('static/js'):
     os.makedirs('static/js')
 
 # Input validation functions
-def validate_student_data(data):
-    required_fields = ['name', 'study_hours', 'attendance', 'previous_grades', 
-                      'participation_score', 'socio_economic_status']
+def validate_student_data(data, is_prediction=False):
+    if is_prediction:
+        # For prediction endpoint, only validate the required prediction fields
+        required_fields = ['study_hours', 'attendance', 'previous_grades', 'participation_score']
+    else:
+        # For full student data, validate all required fields
+        required_fields = ['name', 'study_hours', 'attendance', 'previous_grades', 
+                          'participation_score', 'socio_economic_status']
     
     for field in required_fields:
         if field not in data:
@@ -306,12 +311,13 @@ def delete_student(student_id):
 def predict_performance():
     try:
         data = request.get_json()
-        validate_student_data(data)
+        validate_student_data(data, is_prediction=True)
         
-        prediction = predict_performance(data)
+        result = make_prediction(data)
         return jsonify({
             'success': True,
-            'prediction': prediction
+            'prediction': result['prediction'],
+            'suggestions': result['suggestions']
         })
     except ValueError as e:
         logger.error(f"Validation error: {e}")

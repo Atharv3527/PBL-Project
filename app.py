@@ -882,7 +882,6 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def predict_performance():
     try:
         data = request.get_json()
-        
         # Process the student data
         student_data = {
             "name": data.get('name'),
@@ -909,16 +908,22 @@ def predict_performance():
         prediction_result = make_prediction(student_data)
         prediction_score = prediction_result['prediction']
         
-        # Determine performance category
+        # Determine performance category and risk level
         if prediction_score >= 85:
             category = "High Performer"
             category_color = "success"
+            risk_level = "Low"
+            risk_message = "Excellent performance predicted. Keep up the good work!"
         elif prediction_score >= 70:
             category = "Average Performer"
             category_color = "warning"
+            risk_level = "Medium"
+            risk_message = "Good performance, but there is room for improvement."
         else:
             category = "At Risk"
             category_color = "danger"
+            risk_level = "High"
+            risk_message = "Student is at risk. Immediate intervention recommended."
 
         # Calculate feature importance and impact
         feature_importance = [
@@ -930,8 +935,6 @@ def predict_performance():
             {"name": "Physical Activity", "value": student_data['physical_activity'], "weight": 0.10},
             {"name": "Stress Level", "value": student_data['stress_level'], "weight": 0.10}
         ]
-
-        # Calculate impact levels
         for factor in feature_importance:
             if factor["name"] == "Study Hours":
                 factor["impact"] = "High" if factor["value"] >= 6 else "Medium" if factor["value"] >= 4 else "Low"
@@ -978,29 +981,20 @@ def predict_performance():
 
         # Generate personalized suggestions
         suggestions = []
-        
         if student_data['study_hours'] < 6:
             suggestions.append(f"Increase study hours by {6 - student_data['study_hours']:.1f} hours per day")
-        
         if student_data['attendance'] < 85:
             suggestions.append(f"Improve attendance from {student_data['attendance']}% to at least 85%")
-        
         if student_data['participation_score'] < 7:
             suggestions.append("Participate more actively in class discussions")
-        
         if student_data['sleep_duration'] < 7:
             suggestions.append("Get more sleep (aim for 7-8 hours per night)")
-        
         if student_data['stress_level'] > 7:
             suggestions.append("Consider stress management techniques")
-        
         if student_data['physical_activity'] < 3:
             suggestions.append("Increase physical activity to at least 3 hours per week")
-        
         if student_data['assignment_timeliness'] != 'always_on_time':
             suggestions.append("Submit all assignments on time")
-        
-        # Limit to top 7 suggestions
         suggestions = suggestions[:7]
 
         response_data = {
@@ -1008,20 +1002,17 @@ def predict_performance():
             'prediction': prediction_score,
             'category': category,
             'category_color': category_color,
+            'risk_level': risk_level,
+            'risk_message': risk_message,
             'class_average': class_average,
             'factors': feature_importance,
             'visualizations': visualizations,
             'suggestions': suggestions
         }
-
         return jsonify(response_data)
-        
     except Exception as e:
         logger.error(f"Error in predict_performance route: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')

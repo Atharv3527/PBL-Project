@@ -50,7 +50,7 @@ const Predict = () => {
       };
 
       // Send data to the server
-      const response = await axios.post('http://localhost:5000/predict', predictionData);
+      const response = await axios.post('http://localhost:5000/api/predict', predictionData);
       
       setPrediction(response.data.prediction);
       setSuggestions(response.data.suggestions);
