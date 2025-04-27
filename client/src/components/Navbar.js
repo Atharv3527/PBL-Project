@@ -11,7 +11,6 @@ const Navbar = () => {
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
             <Nav.Link as={Link} to="/">Dashboard</Nav.Link>
-            <Nav.Link as={Link} to="/add-student">Add Student</Nav.Link>
             <Nav.Link as={Link} to="/predict">Predict Performance</Nav.Link>
           </Nav>
         </BootstrapNavbar.Collapse>

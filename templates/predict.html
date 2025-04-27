@@ -5,7 +5,7 @@
 {% block extra_css %}
 <style>
     body {
-        background-color: #e6f7ff;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f7fa 100%) !important;
         min-height: 100vh;
     }
     
@@ -130,7 +130,7 @@
             <h5><i class="fas fa-chart-line me-2"></i>Performance Prediction Form</h5>
         </div>
         <div class="card-body">
-            <form id="predictForm" method="POST" action="{{ url_for('predict') }}">
+            <form id="predictForm">
                 <!-- Basic Information -->
                 <div class="form-section">
                     <div class="section-header">
@@ -346,8 +346,11 @@
                     <button type="reset" class="btn btn-secondary me-2">
                         <i class="fas fa-undo me-2"></i>Reset
                     </button>
+                    <a href="/student_data" class="btn btn-success me-2">
+                        <i class="fas fa-table me-2"></i>Go to Student Data
+                    </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-chart-line me-2"></i>Predict Performance
+                        <i class="fas fa-chart-line me-2"></i>Predict
                     </button>
                 </div>
             </form>
@@ -355,127 +358,172 @@
     </div>
 
     <!-- Results Section (Initially Hidden) -->
-    <div id="results" class="card mt-4" style="display: none;">
-        <!-- Results will be populated via JavaScript -->
+    <div id="results" class="container-fluid mt-4" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8 mb-4">
+                <!-- Prediction Summary Card -->
+                <div class="card text-center shadow-xl rounded-4 p-5 bg-gradient" style="background: linear-gradient(135deg, #e0f7fa 0%, #e3f2fd 100%);">
+                    <h2 class="text-xl font-bold mb-3">Predicted Performance</h2>
+                    <p id="predictionScore" class="text-5xl font-extrabold mb-2"></p>
+                    <div class="w-100 bg-gray-200 rounded-full h-4 mt-4 mb-2" style="height: 1.5rem;">
+                        <div id="predictionProgress" class="bg-success h-4 rounded-full" style="height: 1.5rem; width: 0%; transition: width 1s;"></div>
+                    </div>
+                    <span id="performanceLabel" class="badge fs-5 mb-2"></span>
+                    <p id="performanceCategory" class="text-sm text-gray-600 mt-2"></p>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-8 mb-4">
+                <!-- Bar and Pie Charts -->
+                <div class="card shadow rounded-4 p-3 mb-3">
+                    <h5 class="text-center">Performance Comparison</h5>
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+                <div class="card shadow rounded-4 p-3">
+                    <h5 class="text-center">Factor Distribution</h5>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8 mb-4">
+                <!-- Suggestions Section -->
+                <div class="card shadow rounded-4 p-4 bg-white">
+                    <h4 class="mb-3"><i class="fas fa-lightbulb me-2"></i>Suggestions</h4>
+                    <ul class="list-group list-group-flush" id="suggestionsList"></ul>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-8 mb-4">
+                <!-- Data Table View -->
+                <div class="card shadow rounded-4 p-4 bg-white">
+                    <h4 class="mb-3"><i class="fas fa-table me-2"></i>Performance Factors</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Factor</th>
+                                    <th>Value</th>
+                                    <th>Influence</th>
+                                </tr>
+                            </thead>
+                            <tbody id="factorsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-6 col-md-8 d-flex justify-content-between">
+                <button class="btn btn-outline-primary" id="downloadPDFBtn"><i class="fas fa-file-pdf me-2"></i>Download PDF</button>
+                <button class="btn btn-outline-secondary" id="predictAnotherBtn"><i class="fas fa-user-plus me-2"></i>Predict for Another Student</button>
+            </div>
+        </div>
     </div>
+
+    <div id="predictError" class="alert alert-danger d-none" role="alert"></div>
+    <pre id="debugArea" style="background:#f8f8f8;color:#333;padding:10px;display:none;"></pre>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.getElementById('predictForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
-    // Show loading state
-    Swal.fire({
-        title: 'Analyzing...',
-        text: 'Please wait while we process the data',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-    
+    document.getElementById('predictError').classList.add('d-none');
+    document.getElementById('predictError').textContent = '';
+    document.getElementById('debugArea').style.display = 'none';
+    document.getElementById('debugArea').textContent = '';
     try {
         const formData = new FormData(this);
-        const response = await fetch('/predict', {
+        const jsonData = {};
+        formData.forEach((value, key) => { jsonData[key] = value; });
+        const response = await fetch('/predict_performance', {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(jsonData)
         });
-        
-        const result = await response.json();
-        
+        let resultText = await response.text();
+        let result;
+        try {
+            result = JSON.parse(resultText);
+        } catch (parseErr) {
+            document.getElementById('debugArea').style.display = 'block';
+            document.getElementById('debugArea').textContent = 'Raw response (not JSON):\n' + resultText;
+            throw new Error('Backend did not return valid JSON.');
+        }
+        document.getElementById('debugArea').style.display = 'block';
+        document.getElementById('debugArea').textContent = 'Raw response (JSON):\n' + JSON.stringify(result, null, 2);
         if (result.success) {
-            // Hide loading
-            Swal.close();
-            
-            // Show success message with the prediction
-            Swal.fire({
-                icon: 'success',
-                title: 'Prediction Complete!',
-                text: `Predicted Performance: ${result.prediction}%`,
-                confirmButtonColor: '#1a75ff'
-            });
-            
-            // Display detailed results
+            document.getElementById('predictError').classList.add('d-none');
             displayResults(result);
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         } else {
             throw new Error(result.error || 'Failed to make prediction');
         }
     } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'An error occurred while making the prediction',
-            confirmButtonColor: '#1a75ff'
-        });
+        document.getElementById('predictError').classList.remove('d-none');
+        document.getElementById('predictError').textContent = error.message || 'An error occurred while making the prediction';
     }
 });
 
 function displayResults(result) {
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.style.display = 'block';
-    
-    resultsDiv.innerHTML = `
-        <div class="card-header">
-            <h5><i class="fas fa-chart-bar me-2"></i>Prediction Results</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="text-center mb-4">
-                        <h3>Overall Performance</h3>
-                        <div class="display-4 text-primary">${result.prediction}%</div>
-                        <div class="badge bg-${result.prediction >= 85 ? 'success' : result.prediction >= 70 ? 'warning' : 'danger'} mt-2">
-                            ${result.category}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <h4>Key Factors</h4>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Factor</th>
-                                    <th>Value</th>
-                                    <th>Impact</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${result.factors.map(factor => `
-                                    <tr>
-                                        <td>${factor.name}</td>
-                                        <td>${factor.value}</td>
-                                        <td>
-                                            <span class="badge bg-${factor.impact === 'High' ? 'success' : factor.impact === 'Medium' ? 'warning' : 'danger'}">
-                                                ${factor.impact}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-4">
-                <h4>Recommendations</h4>
-                <div class="row">
-                    ${result.suggestions.map(suggestion => `
-                        <div class="col-md-6 mb-3">
-                            <div class="alert alert-info">
-                                <i class="fas fa-lightbulb me-2"></i>${suggestion}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-    `;
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('predictionScore').textContent = result.prediction ? `${Number(result.prediction).toFixed(1)}%` : 'N/A';
+    const progress = document.getElementById('predictionProgress');
+    progress.style.width = '0%';
+    setTimeout(() => { progress.style.width = `${result.prediction || 0}%`; }, 100);
+    document.getElementById('performanceLabel').textContent = result.category || 'N/A';
+    document.getElementById('performanceLabel').className = `badge fs-5 mb-2 bg-${result.category_color || 'secondary'}`;
+    document.getElementById('performanceCategory').textContent = result.category || 'N/A';
+    document.getElementById('performanceCategory').className = `text-${result.category_color || 'secondary'}`;
+    // Bar Chart
+    const compCtx = document.getElementById('comparisonChart').getContext('2d');
+    if (window.compChart) window.compChart.destroy();
+    window.compChart = new Chart(compCtx, {
+        type: 'bar',
+        data: {
+            labels: (result.visualizations && result.visualizations.performance_comparison && result.visualizations.performance_comparison.labels) || ['Predicted Score', 'Class Average'],
+            datasets: [{
+                data: (result.visualizations && result.visualizations.performance_comparison && result.visualizations.performance_comparison.data) || [result.prediction || 0, result.class_average || 0],
+                backgroundColor: (result.visualizations && result.visualizations.performance_comparison && result.visualizations.performance_comparison.colors) || ['#1a75ff', '#4CAF50'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, title: { display: false } },
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+    // Pie Chart
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    if (window.pieChart) window.pieChart.destroy();
+    window.pieChart = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: (result.visualizations && result.visualizations.feature_importance && result.visualizations.feature_importance.labels) || ['Study Hours', 'Attendance', 'Grades', 'Participation'],
+            datasets: [{
+                data: (result.visualizations && result.visualizations.feature_importance && result.visualizations.feature_importance.data) || [25, 20, 15, 10],
+                backgroundColor: (result.visualizations && result.visualizations.feature_importance && result.visualizations.feature_importance.colors) || ['#1a75ff', '#4CAF50', '#FFC107', '#FF5722']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+    // Suggestions
+    const suggestionsList = document.getElementById('suggestionsList');
+    suggestionsList.innerHTML = (result.suggestions && result.suggestions.length > 0)
+        ? result.suggestions.map(s => `<li class=\"list-group-item d-flex align-items-center\"><i class=\"fas fa-check-circle text-success me-2\"></i>${s}</li>`).join('')
+        : '<li class=\"list-group-item\">No suggestions available.</li>';
+    // Data Table
+    const factorsTableBody = document.getElementById('factorsTableBody');
+    factorsTableBody.innerHTML = (result.factors && result.factors.length > 0)
+        ? result.factors.map(f => `<tr><td>${f.name}</td><td>${f.value}</td><td>${f.impact}</td></tr>`).join('')
+        : '<tr><td colspan=\"3\">No data available.</td></tr>';
+    // Download PDF (stub)
+    document.getElementById('downloadPDFBtn').onclick = function() { alert('PDF download coming soon!'); };
+    // Predict Another Student
+    document.getElementById('predictAnotherBtn').onclick = function() { window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('predictForm').reset(); document.getElementById('results').style.display = 'none'; };
 }
 </script>
 {% endblock %} 

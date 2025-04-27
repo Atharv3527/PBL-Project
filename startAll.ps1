@@ -7,6 +7,17 @@ Set-Location "C:\PBL Project"
 # Install required packages
 pip install flask flask-sqlalchemy pandas numpy scikit-learn plotly flask-cors PyPDF2 python-docx
 
+# Build the React app
+Write-Host "Building React app..."
+Set-Location .\client
+npm run build
+Set-Location ..
+
+# Copy React build files to Flask static directory
+Write-Host "Copying React build files to Flask static directory..."
+if (Test-Path .\static) { Remove-Item .\static -Recurse -Force }
+Copy-Item .\client\build\* .\static -Recurse
+
 # Check if flask_api.py exists
 if (-not (Test-Path "flask_api.py")) {
     Write-Host "Error: flask_api.py not found. Please make sure it exists in the project directory."
@@ -18,37 +29,6 @@ Write-Host "Starting Flask API..."
 $env:FLASK_NO_OPEN_BROWSER = "true"
 Start-Process -NoNewWindow -FilePath "python" -ArgumentList "flask_api.py"
 
-# Wait for Flask API to start
-Write-Host "Waiting for Flask API to initialize..."
-Start-Sleep -Seconds 3
-
-# Navigate to client directory
-Write-Host "Setting up React application..."
-Set-Location ".\client"
-
-# Create a temporary batch file to run React without opening browser automatically
-@"
-cd C:\PBL Project\client
-set BROWSER=none
-npm start
-"@ | Out-File -FilePath "run_react.bat" -Encoding ascii
-
-# Run the batch file in a new window
-Write-Host "Starting React client..."
-Start-Process -FilePath "run_react.bat" -WindowStyle Normal
-
-# Wait for React to start
-Write-Host "Waiting for React to start..."
-Start-Sleep -Seconds 5
-
-# Open browser only for React app
-Write-Host "Opening browser..."
-Start-Process "http://localhost:3000"
-
-# Navigate back to project root
-Set-Location "C:\PBL Project"
-
 Write-Host "Done! Your application should be running."
 Write-Host "- Flask API running on: http://127.0.0.1:5000"
-Write-Host "- React App running on: http://localhost:3000"
-Write-Host "Note: Only the React app window has been opened in your browser." 
+Write-Host "Access your updated website at: http://127.0.0.1:5000" 

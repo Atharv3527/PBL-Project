@@ -211,7 +211,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <form method="POST" action="{{ url_for('predict') }}" style="display: inline;">
+                            <form method="POST" action="{{ url_for('predict_performance') }}" style="display: inline;">
                                 {% for key, value in student.items() %}
                                     <input type="hidden" name="{{ key }}" value="{{ value }}">
                                 {% endfor %}
@@ -281,7 +281,7 @@ function predictStudent(student) {
     // Create a form to submit the student data
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '/predict';
+    form.action = '/predict_performance';
     
     // Add all student data as hidden fields
     for (const [key, value] of Object.entries(student)) {

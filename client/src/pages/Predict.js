@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Card, Alert, Row, Col, ListGroup } from 'react-bootstrap';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Predict = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const Predict = () => {
   const [error, setError] = useState('');
   const [prediction, setPrediction] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +50,7 @@ const Predict = () => {
       };
 
       // Send data to the server
-      const response = await axios.post('http://localhost:5000/api/predict', predictionData);
+      const response = await axios.post('http://localhost:5000/predict', predictionData);
       
       setPrediction(response.data.prediction);
       setSuggestions(response.data.suggestions);
@@ -68,7 +70,7 @@ const Predict = () => {
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#e6f9e6', minHeight: '100vh', padding: '2rem' }}>
       <h1 className="text-center mb-4">Predict Student Performance</h1>
       
       <Row>
@@ -152,12 +154,14 @@ const Predict = () => {
                   </Form.Text>
                 </Form.Group>
                 
-                <div className="d-grid">
-                  <Button 
-                    variant="primary" 
-                    type="submit"
-                    disabled={loading}
-                  >
+                <div className="d-flex justify-content-end gap-2 mt-4">
+                  <Button variant="secondary" onClick={() => setFormData({ study_hours: '', attendance: '', previous_grades: '', participation_score: '' })}>
+                    Reset
+                  </Button>
+                  <Button variant="contained" color="secondary" onClick={() => navigate('/student-data')}>
+                    Go to Student Data
+                  </Button>
+                  <Button variant="primary" type="submit" disabled={loading}>
                     {loading ? 'Predicting...' : 'Predict Performance'}
                   </Button>
                 </div>

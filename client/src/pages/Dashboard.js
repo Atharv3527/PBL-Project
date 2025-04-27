@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import { Link } from 'react-router-dom';
 
 ChartJS.register(
   ArcElement,
@@ -164,7 +165,7 @@ const Dashboard = () => {
       </Row>
 
       {/* Students Table */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm mb-3">
         <Card.Body>
           <Card.Title>Student Data</Card.Title>
           <div className="table-responsive">

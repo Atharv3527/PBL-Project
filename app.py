@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, send_from_directory
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
@@ -50,15 +50,25 @@ def validate_student_data(data):
 def load_student_data():
     try:
         with open('student_data.json', 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            # If data is an array, convert it to the expected format
+            if isinstance(data, list):
+                return {
+                    "students": data,
+                    "statistics": calculate_statistics(data)
+                }
+            return data
     except FileNotFoundError:
-        return {"students": [], "statistics": {
-            "total_students": 0,
-            "average_performance": 0,
-            "top_performance": 0,
-            "average_study_hours": 0,
-            "last_updated": datetime.now().strftime("%Y-%m-%d")
-        }}
+        return {
+            "students": [],
+            "statistics": {
+                "total_students": 0,
+                "average_performance": 0,
+                "top_performance": 0,
+                "average_study_hours": 0,
+                "last_updated": datetime.now().strftime("%Y-%m-%d")
+            }
+        }
 
 # Save student data to JSON file
 def save_student_data(data):
@@ -131,7 +141,8 @@ def index():
 
 @app.route('/dashboard')
 def dashboard():
-    statistics = calculate_statistics()
+    data = load_student_data()
+    statistics = calculate_statistics(data['students'])
     return render_template('dashboard.html', statistics=statistics)
 
 @app.route('/about')
@@ -270,39 +281,50 @@ def update_student(student_id):
             'error': str(e)
         }), 500
 
-@app.route('/add_student', methods=['GET', 'POST'])
-def add_student():
+@app.route('/api/students', methods=['GET', 'POST'])
+def handle_students():
     if request.method == 'GET':
-        return render_template('add_student.html')
+        try:
+            data = load_student_data()
+            return jsonify(data['students'])
+        except Exception as e:
+            logger.error(f"Error getting students: {str(e)}")
+            return jsonify({'error': str(e)}), 500
     
-    try:
-        data = load_student_data()
-        new_student = request.get_json()
-        
-        # Add ID and timestamp
-        new_student['id'] = len(data['students']) + 1
-        new_student['created_at'] = datetime.now().strftime("%Y-%m-%d")
-        
-        # Add the new student
-        data['students'].append(new_student)
-        
-        # Update statistics
-        data['statistics'] = calculate_statistics(data['students'])
-        
-        # Save updated data
-        save_student_data(data)
-        
-        return jsonify({
-            'success': True,
-            'message': 'Student added successfully',
-            'statistics': data['statistics']
-        })
-    except Exception as e:
-        logger.error(f"Error in add_student: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    elif request.method == 'POST':
+        try:
+            data = load_student_data()
+            new_student = request.get_json()
+            
+            # Validate the data
+            validate_student_data(new_student)
+            
+            # Add metadata
+            new_student['id'] = len(data['students']) + 1
+            new_student['created_at'] = datetime.now().strftime("%Y-%m-%d")
+            
+            # Add the new student
+            data['students'].append(new_student)
+            
+            # Update statistics
+            data['statistics'] = calculate_statistics(data['students'])
+            
+            # Save the updated data
+            save_student_data(data)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Student added successfully',
+                'student': new_student,
+                'statistics': data['statistics']
+            })
+                
+        except Exception as e:
+            logger.error(f"Error adding student: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
 
 def normalize_value(value, min_val, max_val):
     """Normalize a value to percentage."""
@@ -371,78 +393,153 @@ def get_recommendations(data):
     
     return recommendations
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['GET', 'POST'])
 def predict():
+    if request.method == 'GET':
+        return render_template('predict.html')
+    
     try:
         data = request.get_json()
         
         # Process the student data
         student_data = {
-            "name": data.get('student_name'),
+            "name": data.get('name'),
             "study_hours": float(data.get('study_hours', 0)),
             "attendance": float(data.get('attendance', 0)),
             "previous_grades": float(data.get('previous_grades', 0)),
             "participation_score": float(data.get('participation_score', 0)),
             "socio_economic_status": data.get('socio_economic_status', ''),
-            "extracurricular": data.get('extracurricular_activities', ''),
+            "extracurricular": data.get('extracurricular', ''),
             "learning_style": data.get('learning_style', ''),
             "gender": data.get('gender', ''),
-            "parents_education": data.get('parents_education', '')
+            "parents_education": data.get('parents_education', ''),
+            "study_environment": data.get('study_environment', ''),
+            "parent_meeting_freq": data.get('parent_meeting_freq', ''),
+            "home_support": data.get('home_support', ''),
+            "sleep_duration": float(data.get('sleep_duration', 7)),
+            "stress_level": float(data.get('stress_level', 5)),
+            "physical_activity": float(data.get('physical_activity', 0)),
+            "peer_academic_quality": data.get('peer_academic_quality', ''),
+            "assignment_timeliness": data.get('assignment_timeliness', '')
         }
 
         # Calculate prediction and analysis
-        prediction_result = predict_performance(student_data)
+        prediction_result = make_prediction(student_data)
+        prediction_score = prediction_result['prediction']
         
-        # Prepare response with detailed analysis
-        response = {
-            'score': prediction_result['prediction'],
-            'category': get_risk_level(prediction_result['prediction']),
-            'attendance_impact': get_attendance_impact(student_data['attendance']),
-            'metrics': {
-                'Study Hours': normalize_value(student_data['study_hours'], 0, 24),
-                'Attendance': student_data['attendance'],
-                'Previous Grades': student_data['previous_grades'],
-                'Participation': normalize_value(student_data['participation_score'], 1, 10)
+        # Determine performance category
+        if prediction_score >= 85:
+            category = "High Performer"
+            category_color = "success"
+        elif prediction_score >= 70:
+            category = "Average Performer"
+            category_color = "warning"
+        else:
+            category = "At Risk"
+            category_color = "danger"
+
+        # Calculate feature importance and impact
+        feature_importance = [
+            {"name": "Study Hours", "value": student_data['study_hours'], "weight": 0.25},
+            {"name": "Attendance", "value": student_data['attendance'], "weight": 0.20},
+            {"name": "Previous Grades", "value": student_data['previous_grades'], "weight": 0.15},
+            {"name": "Participation", "value": student_data['participation_score'], "weight": 0.10},
+            {"name": "Sleep Quality", "value": student_data['sleep_duration'], "weight": 0.10},
+            {"name": "Physical Activity", "value": student_data['physical_activity'], "weight": 0.10},
+            {"name": "Stress Level", "value": student_data['stress_level'], "weight": 0.10}
+        ]
+
+        # Calculate impact levels
+        for factor in feature_importance:
+            if factor["name"] == "Study Hours":
+                factor["impact"] = "High" if factor["value"] >= 6 else "Medium" if factor["value"] >= 4 else "Low"
+            elif factor["name"] == "Attendance":
+                factor["impact"] = "High" if factor["value"] >= 85 else "Medium" if factor["value"] >= 70 else "Low"
+            elif factor["name"] == "Previous Grades":
+                factor["impact"] = "High" if factor["value"] >= 80 else "Medium" if factor["value"] >= 60 else "Low"
+            elif factor["name"] == "Participation":
+                factor["impact"] = "High" if factor["value"] >= 8 else "Medium" if factor["value"] >= 6 else "Low"
+            elif factor["name"] == "Sleep Quality":
+                factor["impact"] = "High" if factor["value"] >= 8 else "Medium" if factor["value"] >= 6 else "Low"
+            elif factor["name"] == "Physical Activity":
+                factor["impact"] = "High" if factor["value"] >= 5 else "Medium" if factor["value"] >= 3 else "Low"
+            elif factor["name"] == "Stress Level":
+                factor["impact"] = "Low" if factor["value"] <= 4 else "Medium" if factor["value"] <= 7 else "High"
+
+        # Get class average from existing students
+        students_data = load_student_data()
+        class_average = sum(s.get('performance', 0) for s in students_data['students']) / len(students_data['students']) if students_data['students'] else 0
+
+        # Generate visualization data
+        visualizations = {
+            "performance_comparison": {
+                "labels": ["Predicted Score", "Class Average"],
+                "data": [prediction_score, class_average],
+                "colors": ["#1a75ff", "#4CAF50"]
             },
-            'feature_importance': [
-                {'feature': 'Previous Grades', 'importance': 0.35},
-                {'feature': 'Study Hours', 'importance': 0.25},
-                {'feature': 'Attendance', 'importance': 0.20},
-                {'feature': 'Participation', 'importance': 0.15},
-                {'feature': 'Learning Environment', 'importance': 0.05}
-            ],
-            'analysis': [
-                {
-                    'feature': 'Study Hours',
-                    'value': f"{student_data['study_hours']} hrs/week",
-                    'normalized': f"{normalize_value(student_data['study_hours'], 0, 24)}%",
-                    'impact': get_impact_level(student_data['study_hours'], 15)
-                },
-                {
-                    'feature': 'Attendance',
-                    'value': f"{student_data['attendance']}%",
-                    'normalized': f"{student_data['attendance']}%",
-                    'impact': get_impact_level(student_data['attendance'], 85)
-                },
-                {
-                    'feature': 'Previous Grades',
-                    'value': f"{student_data['previous_grades']}%",
-                    'normalized': f"{student_data['previous_grades']}%",
-                    'impact': get_impact_level(student_data['previous_grades'], 70)
-                },
-                {
-                    'feature': 'Participation',
-                    'value': f"{student_data['participation_score']}/10",
-                    'normalized': f"{normalize_value(student_data['participation_score'], 1, 10)}%",
-                    'impact': get_impact_level(student_data['participation_score'], 7)
-                }
-            ],
-            'suggestions': get_enhanced_recommendations(student_data)
+            "radar_chart": {
+                "labels": ["Study Hours", "Attendance", "Participation", "Previous Grades", "Physical Activity"],
+                "data": [
+                    student_data['study_hours'] * 10,  # Scale to 0-100
+                    student_data['attendance'],
+                    student_data['participation_score'] * 10,  # Scale to 0-100
+                    student_data['previous_grades'],
+                    student_data['physical_activity'] * 5  # Scale to 0-100
+                ]
+            },
+            "feature_importance": {
+                "labels": [f["name"] for f in feature_importance],
+                "data": [f["weight"] * 100 for f in feature_importance],
+                "colors": ["#1a75ff", "#4CAF50", "#FFC107", "#FF5722", "#9C27B0", "#3F51B5", "#E91E63"]
+            }
         }
 
-        return jsonify(response)
+        # Generate personalized suggestions
+        suggestions = []
+        
+        if student_data['study_hours'] < 6:
+            suggestions.append(f"Increase study hours by {6 - student_data['study_hours']:.1f} hours per day")
+        
+        if student_data['attendance'] < 85:
+            suggestions.append(f"Improve attendance from {student_data['attendance']}% to at least 85%")
+        
+        if student_data['participation_score'] < 7:
+            suggestions.append("Participate more actively in class discussions")
+        
+        if student_data['sleep_duration'] < 7:
+            suggestions.append("Get more sleep (aim for 7-8 hours per night)")
+        
+        if student_data['stress_level'] > 7:
+            suggestions.append("Consider stress management techniques")
+        
+        if student_data['physical_activity'] < 3:
+            suggestions.append("Increase physical activity to at least 3 hours per week")
+        
+        if student_data['assignment_timeliness'] != 'always_on_time':
+            suggestions.append("Submit all assignments on time")
+        
+        # Limit to top 7 suggestions
+        suggestions = suggestions[:7]
+
+        response_data = {
+            'success': True,
+            'prediction': prediction_score,
+            'category': category,
+            'category_color': category_color,
+            'class_average': class_average,
+            'factors': feature_importance,
+            'visualizations': visualizations,
+            'suggestions': suggestions
+        }
+
+        return jsonify(response_data)
+        
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error in predict route: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 def get_enhanced_recommendations(data):
     """Generate more detailed personalized recommendations based on student data."""
@@ -780,6 +877,159 @@ def extract_text_from_doc(doc_path):
 # Create upload folder if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+@app.route('/predict_performance', methods=['POST'])
+def predict_performance():
+    try:
+        data = request.get_json()
+        
+        # Process the student data
+        student_data = {
+            "name": data.get('name'),
+            "study_hours": float(data.get('study_hours', 0)),
+            "attendance": float(data.get('attendance', 0)),
+            "previous_grades": float(data.get('previous_grades', 0)),
+            "participation_score": float(data.get('participation_score', 0)),
+            "socio_economic_status": data.get('socio_economic_status', ''),
+            "extracurricular": data.get('extracurricular', ''),
+            "learning_style": data.get('learning_style', ''),
+            "gender": data.get('gender', ''),
+            "parents_education": data.get('parents_education', ''),
+            "study_environment": data.get('study_environment', ''),
+            "parent_meeting_freq": data.get('parent_meeting_freq', ''),
+            "home_support": data.get('home_support', ''),
+            "sleep_duration": float(data.get('sleep_duration', 7)),
+            "stress_level": float(data.get('stress_level', 5)),
+            "physical_activity": float(data.get('physical_activity', 0)),
+            "peer_academic_quality": data.get('peer_academic_quality', ''),
+            "assignment_timeliness": data.get('assignment_timeliness', '')
+        }
+
+        # Calculate prediction and analysis
+        prediction_result = make_prediction(student_data)
+        prediction_score = prediction_result['prediction']
+        
+        # Determine performance category
+        if prediction_score >= 85:
+            category = "High Performer"
+            category_color = "success"
+        elif prediction_score >= 70:
+            category = "Average Performer"
+            category_color = "warning"
+        else:
+            category = "At Risk"
+            category_color = "danger"
+
+        # Calculate feature importance and impact
+        feature_importance = [
+            {"name": "Study Hours", "value": student_data['study_hours'], "weight": 0.25},
+            {"name": "Attendance", "value": student_data['attendance'], "weight": 0.20},
+            {"name": "Previous Grades", "value": student_data['previous_grades'], "weight": 0.15},
+            {"name": "Participation", "value": student_data['participation_score'], "weight": 0.10},
+            {"name": "Sleep Quality", "value": student_data['sleep_duration'], "weight": 0.10},
+            {"name": "Physical Activity", "value": student_data['physical_activity'], "weight": 0.10},
+            {"name": "Stress Level", "value": student_data['stress_level'], "weight": 0.10}
+        ]
+
+        # Calculate impact levels
+        for factor in feature_importance:
+            if factor["name"] == "Study Hours":
+                factor["impact"] = "High" if factor["value"] >= 6 else "Medium" if factor["value"] >= 4 else "Low"
+            elif factor["name"] == "Attendance":
+                factor["impact"] = "High" if factor["value"] >= 85 else "Medium" if factor["value"] >= 70 else "Low"
+            elif factor["name"] == "Previous Grades":
+                factor["impact"] = "High" if factor["value"] >= 80 else "Medium" if factor["value"] >= 60 else "Low"
+            elif factor["name"] == "Participation":
+                factor["impact"] = "High" if factor["value"] >= 8 else "Medium" if factor["value"] >= 6 else "Low"
+            elif factor["name"] == "Sleep Quality":
+                factor["impact"] = "High" if factor["value"] >= 8 else "Medium" if factor["value"] >= 6 else "Low"
+            elif factor["name"] == "Physical Activity":
+                factor["impact"] = "High" if factor["value"] >= 5 else "Medium" if factor["value"] >= 3 else "Low"
+            elif factor["name"] == "Stress Level":
+                factor["impact"] = "Low" if factor["value"] <= 4 else "Medium" if factor["value"] <= 7 else "High"
+
+        # Get class average from existing students
+        students_data = load_student_data()
+        class_average = sum(s.get('performance', 0) for s in students_data['students']) / len(students_data['students']) if students_data['students'] else 0
+
+        # Generate visualization data
+        visualizations = {
+            "performance_comparison": {
+                "labels": ["Predicted Score", "Class Average"],
+                "data": [prediction_score, class_average],
+                "colors": ["#1a75ff", "#4CAF50"]
+            },
+            "radar_chart": {
+                "labels": ["Study Hours", "Attendance", "Participation", "Previous Grades", "Physical Activity"],
+                "data": [
+                    student_data['study_hours'] * 10,  # Scale to 0-100
+                    student_data['attendance'],
+                    student_data['participation_score'] * 10,  # Scale to 0-100
+                    student_data['previous_grades'],
+                    student_data['physical_activity'] * 5  # Scale to 0-100
+                ]
+            },
+            "feature_importance": {
+                "labels": [f["name"] for f in feature_importance],
+                "data": [f["weight"] * 100 for f in feature_importance],
+                "colors": ["#1a75ff", "#4CAF50", "#FFC107", "#FF5722", "#9C27B0", "#3F51B5", "#E91E63"]
+            }
+        }
+
+        # Generate personalized suggestions
+        suggestions = []
+        
+        if student_data['study_hours'] < 6:
+            suggestions.append(f"Increase study hours by {6 - student_data['study_hours']:.1f} hours per day")
+        
+        if student_data['attendance'] < 85:
+            suggestions.append(f"Improve attendance from {student_data['attendance']}% to at least 85%")
+        
+        if student_data['participation_score'] < 7:
+            suggestions.append("Participate more actively in class discussions")
+        
+        if student_data['sleep_duration'] < 7:
+            suggestions.append("Get more sleep (aim for 7-8 hours per night)")
+        
+        if student_data['stress_level'] > 7:
+            suggestions.append("Consider stress management techniques")
+        
+        if student_data['physical_activity'] < 3:
+            suggestions.append("Increase physical activity to at least 3 hours per week")
+        
+        if student_data['assignment_timeliness'] != 'always_on_time':
+            suggestions.append("Submit all assignments on time")
+        
+        # Limit to top 7 suggestions
+        suggestions = suggestions[:7]
+
+        response_data = {
+            'success': True,
+            'prediction': prediction_score,
+            'category': category,
+            'category_color': category_color,
+            'class_average': class_average,
+            'factors': feature_importance,
+            'visualizations': visualizations,
+            'suggestions': suggestions
+        }
+
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Error in predict_performance route: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    if path != "" and os.path.exists(os.path.join('static', path)):
+        return send_from_directory('static', path)
+    else:
+        return send_from_directory('static', 'index.html')
 
 if __name__ == '__main__':
     app.run(debug=True) 
